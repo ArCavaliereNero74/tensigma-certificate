@@ -1,0 +1,387 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Tensigma Allocation Certificate</title>
+<link rel="icon" href="logo_blue.png">
+<style>
+:root{
+  --surface:#F3F5F9;--raised:#FFFFFF;--frost:#E6EEF7;--line:#C9D3E0;
+  --ink:#0A1638;--body:#1B2433;--muted:#5A6578;
+  --navy:#0A2A6E;--gold:#8A6A2B;
+  --sigma:#1E5BD6;--lumen:#2CCFDD;--lumen-ink:#0A7581;--atl:#F26A1E;--atl-ink:#B04A0C;
+  --bench:#8C96A3;--pos:#1B7F49;--neg:#C0322F;--signal:#C25E0A;
+  --shadow:0 8px 28px rgba(10,22,56,.08);
+  --sans:"Nimbus Sans","TeX Gyre Heros",Helvetica,Arial,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --surface:#070D1C;--raised:#0E1830;--frost:#13213F;--line:#24345A;
+  --ink:#EEF2F8;--body:#C9D2E1;--muted:#8E9AB0;--navy:#3E6FD8;--gold:#E2C894;
+  --sigma:#5B94FF;--lumen:#4FE0EA;--lumen-ink:#4FE0EA;--atl:#FF8A3D;--atl-ink:#FF8A3D;
+  --bench:#7D889C;--pos:#3FCF83;--neg:#FF6F6A;--signal:#FF9A45;--shadow:0 8px 28px rgba(0,0,0,.35);color-scheme:dark}}
+:root[data-theme="dark"]{
+  --surface:#070D1C;--raised:#0E1830;--frost:#13213F;--line:#24345A;
+  --ink:#EEF2F8;--body:#C9D2E1;--muted:#8E9AB0;--navy:#3E6FD8;--gold:#E2C894;
+  --sigma:#5B94FF;--lumen:#4FE0EA;--lumen-ink:#4FE0EA;--atl:#FF8A3D;--atl-ink:#FF8A3D;
+  --bench:#7D889C;--pos:#3FCF83;--neg:#FF6F6A;--signal:#FF9A45;--shadow:0 8px 28px rgba(0,0,0,.35);color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--surface);color:var(--body);font-family:var(--sans);font-size:15px;line-height:1.5}
+.num,td.n,th.n{font-variant-numeric:tabular-nums}
+a{color:var(--navy)}
+.wrap{max-width:1240px;margin:0 auto;padding:24px 16px 64px}
+header{display:flex;align-items:center;gap:16px;justify-content:space-between;flex-wrap:wrap;margin-bottom:24px}
+.brand{display:flex;align-items:center;gap:14px}
+.brand img{width:48px;height:48px}
+.logo-dark{display:none}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .logo-dark{display:block}:root:not([data-theme="light"]) .logo-light{display:none}}
+:root[data-theme="dark"] .logo-dark{display:block}:root[data-theme="dark"] .logo-light{display:none}
+h1{font-size:24px;line-height:1.2;margin:0;color:var(--ink);font-weight:700}
+.sub{color:var(--muted);font-size:13px}
+.asof{text-align:right}
+.asof b{color:var(--ink);font-size:18px}
+nav{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 20px;position:sticky;top:0;z-index:5;background:var(--surface);padding:8px 0;border-bottom:1px solid var(--line)}
+nav a{text-decoration:none;color:var(--body);font-size:13px;padding:6px 12px;border:1px solid var(--line);border-radius:999px;background:var(--raised)}
+nav a:hover{border-color:var(--navy);color:var(--ink)}
+section{margin:0 0 24px}
+h2{font-size:19px;color:var(--ink);margin:0 0 4px;font-weight:700}
+.lead{color:var(--muted);font-size:13px;margin:0 0 14px}
+.panel{background:var(--raised);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:20px}
+.grid{display:grid;gap:16px}
+.kpis{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+.kpi{background:var(--raised);border:1px solid var(--line);border-radius:8px;padding:16px;box-shadow:var(--shadow)}
+.kpi .l{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.kpi .v{font-size:24px;font-weight:700;color:var(--ink);margin-top:2px;font-variant-numeric:tabular-nums}
+.kpi .s{font-size:12px;color:var(--muted)}
+.two{grid-template-columns:1fr 1fr}
+@media (max-width:860px){.two{grid-template-columns:1fr}}
+.simple{background:var(--frost);border-radius:8px;padding:16px;font-size:14px;margin-top:14px}
+.simple b{color:var(--ink)}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{text-align:left;color:var(--muted);font-weight:700;font-size:12px;border-bottom:1px solid var(--line);padding:8px 6px;white-space:nowrap;cursor:default}
+th.sort{cursor:pointer}
+td{padding:7px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+td.n,th.n{text-align:right;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+tfoot td{font-weight:700;color:var(--ink);border-top:1px solid var(--line)}
+.tbl{overflow-x:auto}
+.dot{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:baseline}
+.bar{height:6px;border-radius:3px;background:var(--navy);opacity:.75}
+.tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.tools input,.tools select{font:inherit;font-size:13px;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--raised);color:var(--ink)}
+.btn{font-size:13px;padding:6px 12px;border:1px solid var(--line);border-radius:8px;background:var(--raised);color:var(--ink);text-decoration:none;cursor:pointer}
+.btn:hover{border-color:var(--navy)}
+.tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+.chart{position:relative;height:340px}
+.chart.sm{height:220px}
+.stack{display:flex;height:34px;border-radius:8px;overflow:hidden;gap:2px;background:var(--raised)}
+.stack div{display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;margin-top:10px}
+.ev{border-top:1px solid var(--line);padding:14px 0}
+.ev:first-child{border-top:0;padding-top:0}
+.ev h3{font-size:15px;margin:0 0 4px;color:var(--ink)}
+.buy{color:var(--pos)}.sell{color:var(--neg)}
+.caption{font-size:12px;color:var(--muted);margin-top:10px}
+.warn{font-size:12px;color:var(--signal)}
+.hbars .row{display:grid;grid-template-columns:150px 1fr 64px;gap:10px;align-items:center;font-size:13px;margin:6px 0}
+.hbars .track{background:var(--frost);border-radius:3px;height:8px}
+.hbars .fill{height:8px;border-radius:3px;background:var(--navy)}
+footer{font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-top:16px}
+.theme{background:none;border:1px solid var(--line);border-radius:8px;color:var(--muted);font:inherit;font-size:12px;padding:4px 10px;cursor:pointer}
+#err{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="brand">
+    <img class="logo-light" src="logo_blue.png" alt="Tensigma">
+    <img class="logo-dark" src="logo_gold.png" alt="Tensigma">
+    <div>
+      <h1 id="title">Tensigma Allocation Certificate</h1>
+      <div class="sub" id="subtitle">Composizione giornaliera del portafoglio · Lumen IA, Atlantica IA 75, Sigma Global Trend IA e Motore Allocativo Tensigma</div>
+    </div>
+  </div>
+  <div class="asof">
+    <div class="sub">Composizione alla chiusura del</div>
+    <b id="asof">—</b>
+    <div class="sub" id="gen"></div>
+    <button class="theme" id="themeBtn" type="button">Tema chiaro / scuro</button>
+  </div>
+</header>
+
+<nav>
+  <a href="#sintesi">Sintesi</a><a href="#regime">Regime di mercato</a><a href="#composizione">Composizione</a>
+  <a href="#ripartizione">Ripartizione</a><a href="#ribilanciamenti">Ribilanciamenti</a><a href="#andamento">Andamento e metriche</a><a href="#metodo">Metodo</a>
+</nav>
+<div id="err" class="panel warn"></div>
+
+<section id="sintesi">
+  <div class="grid kpis" id="kpis"></div>
+</section>
+
+<section id="regime">
+  <h2>Regime di mercato</h2>
+  <p class="lead">Il Motore Allocativo Tensigma legge il mercato ogni venerdì e decide i pesi delle tre linee, in vigore dal lunedì successivo.</p>
+  <div class="grid two">
+    <div class="panel">
+      <div class="grid kpis" id="regimeKpis" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr))"></div>
+      <div style="margin-top:16px">
+        <div class="sub" style="margin-bottom:6px">Pesi delle linee oggi (a mercato)</div>
+        <div class="stack" id="lineStack"></div>
+        <div class="legend" id="lineLegend"></div>
+      </div>
+      <div class="simple"><b>In parole semplici:</b> il Motore funziona come un termostato con tempi di attesa. Quando il mercato si fa più rischioso sposta subito peso verso la linea più difensiva; quando migliora aspetta qualche settimana di conferma prima di tornare ad aumentare il rischio.</div>
+    </div>
+    <div class="panel">
+      <div class="sub" style="margin-bottom:8px">Storico dei regimi (settimanale)</div>
+      <div class="chart sm"><canvas id="regimeChart" aria-label="Storico dei regimi"></canvas></div>
+      <div class="tbl" style="margin-top:12px"><table id="cambiTbl"></table></div>
+    </div>
+  </div>
+</section>
+
+<section id="composizione">
+  <h2>Composizione del portafoglio</h2>
+  <p class="lead">Look-through delle tre linee pesate dal Motore. Posizioni presenti in più linee accorpate per ISIN. Pesi in percentuale, due decimali, somma 100,00.</p>
+  <div class="panel">
+    <div class="tools">
+      <label class="sub" for="dateSel">Data</label><select id="dateSel"></select>
+      <input id="q" type="search" placeholder="Cerca nome, ISIN, Bloomberg">
+      <a class="btn" href="composizione_ultima.csv" download>Scarica CSV (ultima)</a>
+      <a class="btn" href="storico_composizione.csv" download>Scarica storico CSV</a>
+      <a class="btn" href="cert_bundle.json" download>Dati JSON</a>
+    </div>
+    <div class="tbl"><table id="compTbl"></table></div>
+    <div class="caption">Colonne "da Lumen / da Atlantica / da Sigma": contributo di ciascuna linea al peso dello strumento nel certificate. Liquidità: una quota fissa in conto (cash vero), il resto investito nell'ETF monetario XEON.</div>
+  </div>
+</section>
+
+<section id="ripartizione">
+  <h2>Ripartizione</h2>
+  <p class="lead">Esposizione del certificate alla data selezionata.</p>
+  <div class="grid two">
+    <div class="panel"><div class="sub" style="margin-bottom:6px">Per asset class</div><div class="hbars" id="acBars"></div></div>
+    <div class="panel"><div class="sub" style="margin-bottom:6px">Per divisa dello strumento</div><div class="hbars" id="ccyBars"></div>
+      <div class="caption">Divisa di quotazione dello strumento. Per gli ETF UCITS quotati in EUR l'esposizione valutaria effettiva dipende dal sottostante.</div></div>
+  </div>
+</section>
+
+<section id="ribilanciamenti">
+  <h2>Ribilanciamenti</h2>
+  <p class="lead">Operazioni sul certificate generate dal Motore (cambio di regime) o dalle singole linee. Variazioni di peso in punti percentuali del certificate.</p>
+  <div class="panel" id="events"></div>
+</section>
+
+<section id="andamento">
+  <h2>Andamento e metriche</h2>
+  <p class="lead">Portafoglio combinato del Motore, base 100 al 10/01/2020, dati settimanali, confronto con il portafoglio 60/40.</p>
+  <div class="panel">
+    <div class="chart"><canvas id="navChart" aria-label="NAV del portafoglio combinato e del 60/40"></canvas></div>
+    <div class="caption" id="navCaption"></div>
+  </div>
+  <div class="grid two" style="margin-top:16px">
+    <div class="panel"><div class="sub" style="margin-bottom:8px">Metriche</div><div class="tbl"><table id="metTbl"></table></div>
+      <div class="caption">Sharpe e Sortino con tasso privo di rischio 1,8%. I rendimenti passati non sono indicativi di quelli futuri.</div></div>
+    <div class="panel"><div class="sub" style="margin-bottom:8px">Pesi delle tre linee nel tempo</div><div class="chart sm"><canvas id="wChart" aria-label="Pesi delle linee nel tempo"></canvas></div></div>
+  </div>
+  <div class="panel" style="margin-top:16px">
+    <div class="sub" style="margin-bottom:8px">NAV indicativo dalla data di avvio della composizione giornaliera (base 100)</div>
+    <div class="chart sm"><canvas id="liveChart" aria-label="NAV indicativo giornaliero"></canvas></div>
+    <div class="caption">Calcolo indicativo di Tensigma dai prezzi di chiusura, lordo dei costi delle linee salvo Sigma (netta). Il valore ufficiale del certificate è quello calcolato dall'emittente.</div>
+  </div>
+</section>
+
+<section id="metodo">
+  <h2>Metodo</h2>
+  <div class="panel" id="methodText" style="font-size:14px"></div>
+</section>
+
+<footer>
+  <div id="foot"></div>
+  <p>Documento informativo predisposto da Tensigma Srl per l'emittente. Non costituisce offerta né raccomandazione di investimento. I rendimenti passati non sono indicativi di quelli futuri.</p>
+</footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+(function(){
+const root=document.documentElement;
+try{const t=localStorage.getItem('ts-theme'); if(t) root.setAttribute('data-theme',t);}catch(e){}
+document.getElementById('themeBtn').onclick=()=>{
+  const dark=getComputedStyle(root).getPropertyValue('color-scheme').trim()==='dark';
+  const t=dark?'light':'dark'; root.setAttribute('data-theme',t);
+  try{localStorage.setItem('ts-theme',t)}catch(e){}
+  if(window.__B) renderCharts(window.__B);
+};
+const css=v=>getComputedStyle(root).getPropertyValue(v).trim();
+const nf=(x,d=2)=>x==null||isNaN(x)?'—':x.toLocaleString('it-IT',{minimumFractionDigits:d,maximumFractionDigits:d});
+const pct=(x,d=2,sign=false)=>x==null||isNaN(x)?'—':((sign&&x>0?'+':'')+nf(x*100,d).replace('-','−')+'%');
+const pp=(x,d=2,sign=true)=>x==null?'—':((sign&&x>0?'+':'')+nf(x,d).replace('-','−'));
+const dIT=s=>{if(!s)return '—';const [y,m,d]=s.slice(0,10).split('-');return `${d}/${m}/${y}`;};
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const LC={Lumen:'--lumen',Atlantica:'--atl',Sigma:'--sigma'};
+const LN={Lumen:'Lumen IA',Atlantica:'Atlantica IA 75',Sigma:'Sigma Global Trend IA'};
+const REG_ORDER=['Bear / crisi','Volatilita alta','Neutro','Bull tematico','Bull forte'];
+const REG_LABEL={'Bear / crisi':'Bear / crisi','Volatilita alta':'Volatilità alta','Neutro':'Neutro','Bull tematico':'Bull tematico','Bull forte':'Bull forte'};
+const charts={};
+
+fetch('cert_bundle.json',{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error(r.status);return r.json()}).then(B=>{window.__B=B;render(B)})
+.catch(e=>{const el=document.getElementById('err');el.style.display='block';el.textContent='Dati non disponibili: '+e;});
+
+function render(B){
+  const M=B.meta, R=B.regime, L=B.linee;
+  document.getElementById('asof').textContent=dIT(M.as_of);
+  document.getElementById('gen').textContent='Aggiornato il '+dIT(M.generato)+' alle '+M.generato.slice(11,16);
+  // KPI
+  const comp=B.composizione;
+  const liq=comp.filter(r=>r.asset_class==='Cash'||r.asset_class==='Monetario').reduce((a,r)=>a+r.peso_pct,0);
+  const nav=B.nav_indicativo, navLast=nav[nav.length-1];
+  const k=[
+    ['Regime vigente',REG_LABEL[R.vigente]||R.vigente,'deciso al '+dIT(R.deciso_al)],
+    ['Posizioni',comp.length,'strumenti dopo accorpamento'],
+    ['Liquidità e monetario',nf(liq)+'%','di cui cash vero '+nf(M.cash_vero_pct)+'%'],
+    ['NAV indicativo',nf(navLast.nav),'base 100 al '+dIT(M.avvio_tracking)],
+    ['Ribilanciamenti',B.eventi.length,'dal '+dIT(M.avvio_tracking)],
+  ];
+  document.getElementById('kpis').innerHTML=k.map(x=>`<div class="kpi"><div class="l">${x[0]}</div><div class="v">${esc(x[1])}</div><div class="s">${esc(x[2])}</div></div>`).join('');
+  // regime
+  const S=R.segnali||{};
+  const rk=[
+    ['Regime',REG_LABEL[R.vigente]||R.vigente],
+    ['Settimane nel regime',R.settimane],
+    ['Ultimo cambio',dIT(R.ultimo_cambio)],
+    ['Indice di stress',nf(S.stress_x10,1)],
+    ['S&P 500 vs media lunga',S.spy_sopra_ma?'Sopra':'Sotto'],
+    ['Momentum 6 mesi',pct(S.momentum_6m,1,true)],
+  ];
+  document.getElementById('regimeKpis').innerHTML=rk.map(x=>`<div class="kpi"><div class="l">${x[0]}</div><div class="v" style="font-size:18px">${esc(x[1])}</div></div>`).join('');
+  const W=L.pesi_oggi, T=R.pesi_target||{};
+  document.getElementById('lineStack').innerHTML=['Lumen','Atlantica','Sigma'].map(l=>`<div style="width:${W[l]*100}%;background:var(${LC[l]})" title="${LN[l]} ${nf(W[l]*100)}%">${nf(W[l]*100,1)}%</div>`).join('');
+  document.getElementById('lineLegend').innerHTML=['Lumen','Atlantica','Sigma'].map(l=>`<span><span class="dot" style="background:var(${LC[l]})"></span>${LN[l]}: <b class="num">${nf(W[l]*100)}%</b> <span class="sub">(target ${nf((T[l]||0)*100,1)}%)</span></span>`).join('');
+  const cambi=B.backtest.cambi.slice(-6).reverse();
+  document.getElementById('cambiTbl').innerHTML='<thead><tr><th>In vigore dal</th><th>Da</th><th>A</th><th class="n">Pesi L/A/S</th></tr></thead><tbody>'+
+    cambi.map(c=>`<tr><td>${dIT(c.in_vigore_dal)}</td><td>${esc(REG_LABEL[c.da]||c.da)}</td><td>${esc(REG_LABEL[c.a]||c.a)}</td><td class="n">${esc(c.pesi_target)}</td></tr>`).join('')+'</tbody>';
+  // date selector
+  const dates=Object.keys(B.storico.pesi).sort().reverse();
+  const sel=document.getElementById('dateSel');
+  sel.innerHTML=dates.map(d=>`<option value="${d}">${dIT(d)}</option>`).join('');
+  sel.onchange=()=>renderComp(B); document.getElementById('q').oninput=()=>renderComp(B);
+  renderComp(B);
+  renderEvents(B);
+  renderMetrics(B);
+  renderMethod(B);
+  renderCharts(B);
+  document.getElementById('foot').innerHTML=`${esc(M.nome)} · emittente ${esc(M.emittente)} · advisor ${esc(M.advisor)} · ${esc(M.versione)}`;
+}
+
+let sortKey='peso_pct', sortDir=-1;
+function compRows(B,d){
+  if(d===B.meta.as_of) return B.composizione;
+  const N=B.storico.nomi;
+  return (B.storico.pesi[d]||[]).map(([isin,p])=>({isin,peso_pct:p,bloomberg:N[isin][0],nome:N[isin][1],divisa:N[isin][2],asset_class:N[isin][3]}));
+}
+function renderComp(B){
+  const d=document.getElementById('dateSel').value, q=document.getElementById('q').value.toLowerCase();
+  let rows=compRows(B,d).slice();
+  const full=d===B.meta.as_of;
+  rows.sort((a,b)=>{const x=a[sortKey],y=b[sortKey];return (typeof x==='number'?x-y:String(x).localeCompare(String(y)))*sortDir});
+  const tot=rows.reduce((a,r)=>a+r.peso_pct,0);
+  const vis=rows.filter(r=>!q||(r.nome+' '+r.isin+' '+r.bloomberg).toLowerCase().includes(q));
+  const max=Math.max(...rows.map(r=>r.peso_pct));
+  const cols=[['nome','Strumento'],['isin','ISIN'],['bloomberg','Bloomberg'],['divisa','Div.'],['asset_class','Asset class'],['peso_pct','Peso %','n']]
+    .concat(full?[['da_lumen','da Lumen','n'],['da_atlantica','da Atlantica','n'],['da_sigma','da Sigma','n']]:[]);
+  const head='<thead><tr><th class="n">#</th>'+cols.map(c=>`<th class="sort ${c[2]||''}" data-k="${c[0]}">${c[1]}${sortKey===c[0]?(sortDir<0?' ↓':' ↑'):''}</th>`).join('')+'<th></th></tr></thead>';
+  const body='<tbody>'+vis.map((r,i)=>`<tr><td class="n sub">${i+1}</td><td>${esc(r.nome)}</td><td class="num">${esc(r.isin)}</td><td class="sub">${esc(r.bloomberg)}</td><td>${esc(r.divisa)}</td><td>${esc(r.asset_class)}</td><td class="n"><b>${nf(r.peso_pct)}</b></td>`+
+    (full?['da_lumen','da_atlantica','da_sigma'].map(k=>`<td class="n">${r[k]?nf(r[k]):'<span class="sub">–</span>'}</td>`).join(''):'')+
+    `<td style="width:90px"><div class="bar" style="width:${r.peso_pct/max*100}%"></div></td></tr>`).join('')+'</tbody>';
+  const foot=`<tfoot><tr><td></td><td colspan="5">Totale (${rows.length} posizioni)</td><td class="n">${nf(tot)}</td>${full?'<td colspan="3"></td>':''}<td></td></tr></tfoot>`;
+  const t=document.getElementById('compTbl'); t.innerHTML=head+body+foot;
+  t.querySelectorAll('th.sort').forEach(th=>th.onclick=()=>{const k=th.dataset.k; if(sortKey===k)sortDir*=-1; else {sortKey=k;sortDir=k==='peso_pct'||k.startsWith('da_')?-1:1;} renderComp(B);});
+  // ripartizione per la data selezionata
+  const ac={},cc={};
+  rows.forEach(r=>{const a=(r.asset_class==='Cash'||r.asset_class==='Monetario')?'Liquidità e monetario':(r.asset_class||'Altro');ac[a]=(ac[a]||0)+r.peso_pct;cc[r.divisa||'EUR']=(cc[r.divisa||'EUR']||0)+r.peso_pct;});
+  hbars('acBars',ac); hbars('ccyBars',cc);
+}
+function hbars(id,o){
+  const e=Object.entries(o).sort((a,b)=>b[1]-a[1]); const m=Math.max(...e.map(x=>x[1]));
+  document.getElementById(id).innerHTML=e.map(([k,v])=>`<div class="row"><span>${esc(k)}</span><div class="track"><div class="fill" style="width:${v/m*100}%"></div></div><span class="num" style="text-align:right">${nf(v)}%</span></div>`).join('');
+}
+function renderEvents(B){
+  const ev=B.eventi.slice().reverse();
+  const el=document.getElementById('events');
+  if(!ev.length){el.innerHTML='<p class="sub">Nessun ribilanciamento dalla data di avvio.</p>';return;}
+  el.innerHTML=ev.map(e=>`<div class="ev"><h3>${dIT(e.data)} · ${esc(e.tipo==='Motore'?'Motore Allocativo':LN[e.tipo]||e.tipo)}</h3>
+   <div class="sub">${esc(e.descrizione)} · turnover sul certificate ${nf(e.turnover_pct)}%</div>
+   <details style="margin-top:6px"><summary class="sub" style="cursor:pointer">${e.ordini.length} operazioni</summary>
+   <div class="tbl"><table><thead><tr><th>Operazione</th><th>Strumento</th><th>ISIN</th><th class="n">Variazione peso (p.p.)</th></tr></thead><tbody>
+   ${e.ordini.map(o=>`<tr><td class="${o.delta_pct>0?'buy':'sell'}">${o.operazione==='ACQUISTA'?'Acquista':'Vendi'}</td><td>${esc(o.nome)}</td><td class="num">${esc(o.isin)}</td><td class="n">${pp(o.delta_pct)}</td></tr>`).join('')}
+   </tbody></table></div></details></div>`).join('');
+}
+function renderMetrics(B){
+  const a=B.backtest.metriche||{}, b=B.backtest.metriche_6040||{};
+  const rows=[['Rendimento totale','total',1,true],['Rendimento annuo (CAGR)','cagr',1,true],['Volatilità annua','vol',1,false],['Sharpe Ratio','sharpe',null],['Sortino Ratio','sortino',null],['Max drawdown','maxdd',1,true],['Calmar Ratio','calmar',null]];
+  document.getElementById('metTbl').innerHTML='<thead><tr><th>Metrica</th><th class="n">Motore Tensigma</th><th class="n">60/40</th></tr></thead><tbody>'+
+   rows.map(r=>`<tr><td>${r[0]}</td><td class="n"><b>${r[2]==null?nf(a[r[1]]):pct(a[r[1]],r[2],r[3])}</b></td><td class="n">${r[2]==null?nf(b[r[1]]):pct(b[r[1]],r[2],r[3])}</td></tr>`).join('')+'</tbody>';
+  document.getElementById('navCaption').textContent=`Periodo ${dIT(a.start)} – ${dIT(a.end)}. Simulazione settimanale su prezzi reali, senza look-ahead, al netto dei costi di transazione (0,30% per transazione su Lumen IA e Atlantica IA 75, 0,20% per transazione su Sigma Global Trend IA e sui cambi di regime del Motore). Linee in gestione effettiva solo dalle rispettive date di avvio. I rendimenti passati non sono indicativi di quelli futuri.`;
+}
+function renderMethod(B){
+  const M=B.meta;
+  document.getElementById('methodText').innerHTML=`
+  <p><b>Composizione.</b> Ogni giorno il peso di uno strumento nel certificate è la somma, sulle tre linee, del peso della linea deciso dal Motore Allocativo Tensigma moltiplicato per il peso dello strumento nella linea. I pesi delle linee sono quelli target dal lunedì successivo a un cambio di regime; nelle altre settimane derivano con l'andamento del mercato.</p>
+  <p><b>Fonti delle linee.</b> Atlantica IA 75: allocazione effettiva a mercato del modello, giornaliera. Lumen IA: composizione confermata sulla chiusura settimanale del venerdì, in vigore dal lunedì, aggiornata ogni giorno con i prezzi. Sigma Global Trend IA: composizione a mercato giornaliera del modello in produzione (circa 70 titoli di universo).</p>
+  <p><b>Posizioni doppie e liquidità.</b> Gli strumenti presenti in più linee sono accorpati per ISIN. La liquidità delle tre linee è riunita: ${nf(M.cash_vero_pct)}% resta in conto, il resto è investito nell'ETF monetario Xtrackers II EUR Overnight Rate Swap (XEON, LU0290358497).</p>
+  <p><b>Arrotondamento.</b> Pesi a due decimali con il metodo dei resti maggiori, così la somma è sempre 100,00%.</p>
+  <div class="simple"><b>In parole semplici:</b> il certificate è come una squadra con tre reparti. Il Motore decide quanti giocatori mandare in campo per reparto in base al tempo che fa; ogni reparto sceglie da sé i propri giocatori. Questa pagina mostra la formazione completa, giorno per giorno.</div>
+  ${B.avvisi&&B.avvisi.length?`<p class="warn" style="margin-top:12px">Note di elaborazione: ${B.avvisi.map(esc).join(' · ')}</p>`:''}`;
+}
+
+function renderCharts(B){
+  Object.values(charts).forEach(c=>c.destroy());
+  const ink=css('--ink'),muted=css('--muted'),line=css('--line'),navy=css('--navy'),bench=css('--bench'),surf=css('--raised');
+  Chart.defaults.font.family=css('--sans')||'Helvetica, Arial, sans-serif';
+  Chart.defaults.color=muted;
+  const bt=B.backtest.serie;
+  const labels=bt.map(r=>r.d);
+  const tip={mode:'index',intersect:false,backgroundColor:surf,titleColor:ink,bodyColor:ink,borderColor:line,borderWidth:1,padding:10,
+    callbacks:{title:i=>dIT(i[0].label)}};
+  const xTime={ticks:{maxTicksLimit:8,maxRotation:0,callback:function(v){const s=this.getLabelForValue(v);return s.slice(5,7)+'/'+s.slice(2,4)}},grid:{display:false},border:{color:line}};
+  // fasce di regime come plugin
+  const regAlpha={'Bear / crisi':.22,'Volatilita alta':.14,'Neutro':.08,'Bull tematico':0,'Bull forte':0};
+  const bands={id:'bands',beforeDatasetsDraw(c){const {ctx,chartArea:a,scales:{x}}=c;ctx.save();
+    bt.forEach((r,i)=>{const al=regAlpha[r.reg];if(!al)return;const x0=x.getPixelForValue(i),x1=x.getPixelForValue(Math.min(i+1,bt.length-1));
+      ctx.fillStyle=hexA(bench,al);ctx.fillRect(x0,a.top,Math.max(1,x1-x0),a.bottom-a.top);});ctx.restore();}};
+  const endLabel={id:'endLabel',afterDatasetsDraw(c){const {ctx}=c;ctx.save();ctx.font='700 12px '+Chart.defaults.font.family;
+    c.data.datasets.forEach((ds,i)=>{if(!ds.endLabel)return;const m=c.getDatasetMeta(i);const p=m.data[m.data.length-1];if(!p)return;
+      ctx.fillStyle=ds.endColor||ds.borderColor;ctx.textAlign='right';ctx.fillText(ds.endLabel,p.x-4,p.y-8);});ctx.restore();}};
+  charts.nav=new Chart(document.getElementById('navChart'),{type:'line',
+    data:{labels,datasets:[
+      {label:'Motore Tensigma',data:bt.map(r=>r.nav),borderColor:navy,borderWidth:2.5,pointRadius:0,tension:0,endLabel:'Motore '+nf(bt[bt.length-1].nav,1)},
+      {label:'60/40',data:bt.map(r=>r.b),borderColor:bench,borderWidth:1.5,borderDash:[6,4],pointRadius:0,tension:0,endLabel:'60/40 '+nf(bt[bt.length-1].b,1),endColor:muted}]},
+    options:{maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+      plugins:{legend:{position:'top',align:'start',labels:{boxWidth:18,boxHeight:2}},tooltip:Object.assign({},tip,{callbacks:{title:i=>dIT(i[0].label)+' · '+(REG_LABEL[bt[i[0].dataIndex].reg]||''),label:i=>i.dataset.label+': '+nf(i.parsed.y)}})},
+      scales:{x:xTime,y:{grid:{color:line},border:{display:false},ticks:{callback:v=>nf(v,0)}}}},plugins:[bands,endLabel]});
+  // regime step chart
+  charts.reg=new Chart(document.getElementById('regimeChart'),{type:'line',
+    data:{labels,datasets:[{label:'Regime',data:bt.map(r=>REG_ORDER.indexOf(r.reg)),borderColor:navy,borderWidth:2,stepped:true,pointRadius:0}]},
+    options:{maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:Object.assign({},tip,{callbacks:{title:i=>dIT(i[0].label),label:i=>REG_LABEL[REG_ORDER[i.parsed.y]]}})},
+      scales:{x:xTime,y:{min:-0.4,max:4.4,afterBuildTicks:a=>{a.ticks=[0,1,2,3,4].map(v=>({value:v}))},grid:{color:line},border:{display:false},ticks:{autoSkip:false,callback:v=>REG_LABEL[REG_ORDER[v]]||''}}}}});
+  // pesi linee (aree impilate: quote di un totale)
+  const lineDs=(k,l)=>({label:LN[l],data:bt.map(r=>r[k]*100),borderColor:css(LC[l]),backgroundColor:hexA(css(LC[l]),.55),fill:true,borderWidth:1,pointRadius:0,stepped:false});
+  charts.w=new Chart(document.getElementById('wChart'),{type:'line',
+    data:{labels,datasets:[lineDs('wl','Lumen'),lineDs('wa','Atlantica'),lineDs('ws','Sigma')]},
+    options:{maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{position:'top',align:'start',labels:{boxWidth:12}},tooltip:Object.assign({},tip,{callbacks:{title:i=>dIT(i[0].label),label:i=>i.dataset.label+': '+nf(i.parsed.y,1)+'%'}})},
+      scales:{x:xTime,y:{stacked:true,min:0,max:100,grid:{color:line},border:{display:false},ticks:{callback:v=>v+'%'}}}}});
+  const nv=B.nav_indicativo;
+  charts.live=new Chart(document.getElementById('liveChart'),{type:'line',
+    data:{labels:nv.map(r=>r.data),datasets:[{label:'NAV indicativo',data:nv.map(r=>r.nav),borderColor:navy,borderWidth:2.5,pointRadius:nv.length<40?3:0,pointBackgroundColor:navy,tension:0}]},
+    options:{maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false},tooltip:Object.assign({},tip,{callbacks:{title:i=>dIT(i[0].label),label:i=>'NAV '+nf(i.parsed.y)}})},
+      scales:{x:{grid:{display:false},border:{color:line},ticks:{callback:function(v){return dIT(this.getLabelForValue(v)).slice(0,5)}}},y:{grid:{color:line},border:{display:false},ticks:{callback:v=>nf(v,1)}}}}});
+}
+function hexA(c,a){c=c.trim();if(c.startsWith('#')){let h=c.slice(1);if(h.length===3)h=h.split('').map(x=>x+x).join('');const n=parseInt(h,16);return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`;}return c;}
+})();
+</script>
+</body>
+</html>
