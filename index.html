@@ -85,6 +85,16 @@ tfoot td{font-weight:700;color:var(--ink);border-top:1px solid var(--line)}
 .buy{color:var(--pos)}.sell{color:var(--neg)}
 .caption{font-size:12px;color:var(--muted);margin-top:10px}
 .warn{font-size:12px;color:var(--signal)}
+.donutbox{display:grid;grid-template-columns:220px 1fr;gap:20px;align-items:center}
+@media (max-width:520px){.donutbox{grid-template-columns:1fr}.donut{max-width:240px;margin:0 auto}}
+.donut{position:relative;height:220px}
+.dleg .row{display:grid;grid-template-columns:14px 1fr auto;gap:10px;align-items:center;font-size:13.5px;padding:6px 0;border-bottom:1px solid var(--line)}
+.dleg .row:last-child{border-bottom:0}
+.dleg .sw{width:14px;height:14px;border-radius:4px}
+.dleg .v{font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
+.regleg{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:6px}
+.regleg span{display:inline-flex;align-items:center;gap:6px}
+.regleg i{display:inline-block;width:14px;height:10px;border-radius:2px;border:1px solid var(--line)}
 .hbars .row{display:grid;grid-template-columns:150px 1fr 64px;gap:10px;align-items:center;font-size:13px;margin:6px 0}
 .hbars .track{background:var(--frost);border-radius:3px;height:8px}
 .hbars .fill{height:8px;border-radius:3px;background:var(--navy)}
@@ -155,7 +165,7 @@ footer{font-size:12px;color:var(--muted);border-top:1px solid var(--line);paddin
       <a class="btn" href="cert_bundle.json" download>Dati JSON</a>
     </div>
     <div class="tbl"><table id="compTbl"></table></div>
-    <div class="caption">Colonne "da Lumen / da Atlantica / da Sigma": contributo di ciascuna linea al peso dello strumento nel certificate. Liquidità: una quota fissa in conto (cash vero), il resto investito nell'ETF monetario XEON.</div>
+    <div class="caption">Liquidità: una quota fissa in conto (cash vero), il resto investito nell'ETF monetario XEON.</div>
   </div>
 </section>
 
@@ -163,8 +173,8 @@ footer{font-size:12px;color:var(--muted);border-top:1px solid var(--line);paddin
   <h2>Ripartizione</h2>
   <p class="lead">Esposizione del certificate alla data selezionata.</p>
   <div class="grid two">
-    <div class="panel"><div class="sub" style="margin-bottom:6px">Per asset class</div><div class="hbars" id="acBars"></div></div>
-    <div class="panel"><div class="sub" style="margin-bottom:6px">Per divisa dello strumento</div><div class="hbars" id="ccyBars"></div>
+    <div class="panel"><div class="sub" style="margin-bottom:6px">Per asset class</div><div class="donutbox"><div class="donut"><canvas id="acDonut" aria-label="Ripartizione per asset class"></canvas></div><div class="dleg" id="acLeg"></div></div></div>
+    <div class="panel"><div class="sub" style="margin-bottom:6px">Per divisa dello strumento</div><div class="donutbox"><div class="donut"><canvas id="ccyDonut" aria-label="Ripartizione per divisa"></canvas></div><div class="dleg" id="ccyLeg"></div></div>
       <div class="caption">Divisa di quotazione dello strumento. Per gli ETF UCITS quotati in EUR l'esposizione valutaria effettiva dipende dal sottostante.</div></div>
   </div>
 </section>
@@ -180,6 +190,7 @@ footer{font-size:12px;color:var(--muted);border-top:1px solid var(--line);paddin
   <p class="lead">Portafoglio combinato del Motore, base 100 al 10/01/2020, dati settimanali, confronto con il portafoglio 60/40.</p>
   <div class="panel">
     <div class="chart"><canvas id="navChart" aria-label="NAV del portafoglio combinato e del 60/40"></canvas></div>
+    <div class="caption" id="regLegend"></div>
     <div class="caption" id="navCaption"></div>
   </div>
   <div class="grid two" style="margin-top:16px">
@@ -214,7 +225,7 @@ document.getElementById('themeBtn').onclick=()=>{
   const dark=getComputedStyle(root).getPropertyValue('color-scheme').trim()==='dark';
   const t=dark?'light':'dark'; root.setAttribute('data-theme',t);
   try{localStorage.setItem('ts-theme',t)}catch(e){}
-  if(window.__B) renderCharts(window.__B);
+  if(window.__B){ renderCharts(window.__B); renderComp(window.__B); }
 };
 const css=v=>getComputedStyle(root).getPropertyValue(v).trim();
 const nf=(x,d=2)=>x==null||isNaN(x)?'—':x.toLocaleString('it-IT',{minimumFractionDigits:d,maximumFractionDigits:d});
@@ -286,24 +297,37 @@ function compRows(B,d){
 function renderComp(B){
   const d=document.getElementById('dateSel').value, q=document.getElementById('q').value.toLowerCase();
   let rows=compRows(B,d).slice();
-  const full=d===B.meta.as_of;
   rows.sort((a,b)=>{const x=a[sortKey],y=b[sortKey];return (typeof x==='number'?x-y:String(x).localeCompare(String(y)))*sortDir});
   const tot=rows.reduce((a,r)=>a+r.peso_pct,0);
   const vis=rows.filter(r=>!q||(r.nome+' '+r.isin+' '+r.bloomberg).toLowerCase().includes(q));
   const max=Math.max(...rows.map(r=>r.peso_pct));
   const cols=[['nome','Strumento'],['isin','ISIN'],['bloomberg','Bloomberg'],['divisa','Div.'],['asset_class','Asset class'],['peso_pct','Peso %','n']]
-    .concat(full?[['da_lumen','da Lumen','n'],['da_atlantica','da Atlantica','n'],['da_sigma','da Sigma','n']]:[]);
+    ;
   const head='<thead><tr><th class="n">#</th>'+cols.map(c=>`<th class="sort ${c[2]||''}" data-k="${c[0]}">${c[1]}${sortKey===c[0]?(sortDir<0?' ↓':' ↑'):''}</th>`).join('')+'<th></th></tr></thead>';
   const body='<tbody>'+vis.map((r,i)=>`<tr><td class="n sub">${i+1}</td><td>${esc(r.nome)}</td><td class="num">${esc(r.isin)}</td><td class="sub">${esc(r.bloomberg)}</td><td>${esc(r.divisa)}</td><td>${esc(r.asset_class)}</td><td class="n"><b>${nf(r.peso_pct)}</b></td>`+
-    (full?['da_lumen','da_atlantica','da_sigma'].map(k=>`<td class="n">${r[k]?nf(r[k]):'<span class="sub">–</span>'}</td>`).join(''):'')+
     `<td style="width:90px"><div class="bar" style="width:${r.peso_pct/max*100}%"></div></td></tr>`).join('')+'</tbody>';
-  const foot=`<tfoot><tr><td></td><td colspan="5">Totale (${rows.length} posizioni)</td><td class="n">${nf(tot)}</td>${full?'<td colspan="3"></td>':''}<td></td></tr></tfoot>`;
+  const foot=`<tfoot><tr><td></td><td colspan="5">Totale (${rows.length} posizioni)</td><td class="n">${nf(tot)}</td><td></td></tr></tfoot>`;
   const t=document.getElementById('compTbl'); t.innerHTML=head+body+foot;
-  t.querySelectorAll('th.sort').forEach(th=>th.onclick=()=>{const k=th.dataset.k; if(sortKey===k)sortDir*=-1; else {sortKey=k;sortDir=k==='peso_pct'||k.startsWith('da_')?-1:1;} renderComp(B);});
+  t.querySelectorAll('th.sort').forEach(th=>th.onclick=()=>{const k=th.dataset.k; if(sortKey===k)sortDir*=-1; else {sortKey=k;sortDir=k==='peso_pct'?-1:1;} renderComp(B);});
   // ripartizione per la data selezionata
   const ac={},cc={};
   rows.forEach(r=>{const a=(r.asset_class==='Cash'||r.asset_class==='Monetario')?'Liquidità e monetario':(r.asset_class||'Altro');ac[a]=(ac[a]||0)+r.peso_pct;cc[r.divisa||'EUR']=(cc[r.divisa||'EUR']||0)+r.peso_pct;});
-  hbars('acBars',ac); hbars('ccyBars',cc);
+  donut('acDonut','acLeg',ac,AC_COL); donut('ccyDonut','ccyLeg',cc,CCY_COL);
+}
+const AC_COL={'Equity':'#1E6BFF','Liquidità e monetario':'#00C2A8','Bond':'#FF7A00','Gold':'#FFC400','Crypto':'#E5007E','Altro':'#8C96A3'};
+const CCY_COL={'EUR':'#1E6BFF','USD':'#FF3D5A','GBP':'#7B2FF7','CHF':'#00C2A8','DKK':'#FFC400','SEK':'#FF7A00','CAD':'#2CCB4A'};
+const donuts={};
+function donut(id,legId,o,COL){
+  const e=Object.entries(o).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]);
+  const extra=['#7B2FF7','#2CCB4A','#FF3D5A','#FF7A00','#00C2A8'];let xi=0;
+  const col=e.map(([k])=>COL[k]||extra[(xi++)%extra.length]);
+  if(donuts[id]) donuts[id].destroy();
+  const surf=css('--raised'),ink=css('--ink'),line=css('--line');
+  donuts[id]=new Chart(document.getElementById(id),{type:'doughnut',
+    data:{labels:e.map(x=>x[0]),datasets:[{data:e.map(x=>x[1]),backgroundColor:col,borderColor:surf,borderWidth:2,hoverOffset:6}]},
+    options:{maintainAspectRatio:false,cutout:'62%',plugins:{legend:{display:false},
+      tooltip:{backgroundColor:surf,titleColor:ink,bodyColor:ink,borderColor:line,borderWidth:1,padding:10,callbacks:{label:i=>' '+i.label+': '+nf(i.parsed)+'%'}}}}});
+  document.getElementById(legId).innerHTML=e.map(([k,v],i)=>`<div class="row"><span class="sw" style="background:${col[i]}"></span><span>${esc(k)}</span><span class="v">${nf(v)}%</span></div>`).join('');
 }
 function hbars(id,o){
   const e=Object.entries(o).sort((a,b)=>b[1]-a[1]); const m=Math.max(...e.map(x=>x[1]));
@@ -349,20 +373,32 @@ function renderCharts(B){
     callbacks:{title:i=>dIT(i[0].label)}};
   const xTime={ticks:{maxTicksLimit:8,maxRotation:0,callback:function(v){const s=this.getLabelForValue(v);return s.slice(5,7)+'/'+s.slice(2,4)}},grid:{display:false},border:{color:line}};
   // fasce di regime come plugin
-  const regAlpha={'Bear / crisi':.22,'Volatilita alta':.14,'Neutro':.08,'Bull tematico':0,'Bull forte':0};
+  const REG_COL={'Bear / crisi':'#E5383B','Volatilita alta':'#F28C28','Neutro':'#F2C94C','Bull tematico':'#6FCF97','Bull forte':'#1FA05A'};
+  const bandA=css('color-scheme')==='dark'?.20:.16;
   const bands={id:'bands',beforeDatasetsDraw(c){const {ctx,chartArea:a,scales:{x}}=c;ctx.save();
-    bt.forEach((r,i)=>{const al=regAlpha[r.reg];if(!al)return;const x0=x.getPixelForValue(i),x1=x.getPixelForValue(Math.min(i+1,bt.length-1));
-      ctx.fillStyle=hexA(bench,al);ctx.fillRect(x0,a.top,Math.max(1,x1-x0),a.bottom-a.top);});ctx.restore();}};
-  const endLabel={id:'endLabel',afterDatasetsDraw(c){const {ctx}=c;ctx.save();ctx.font='700 12px '+Chart.defaults.font.family;
-    c.data.datasets.forEach((ds,i)=>{if(!ds.endLabel)return;const m=c.getDatasetMeta(i);const p=m.data[m.data.length-1];if(!p)return;
-      ctx.fillStyle=ds.endColor||ds.borderColor;ctx.textAlign='right';ctx.fillText(ds.endLabel,p.x-4,p.y-8);});ctx.restore();}};
+    bt.forEach((r,i)=>{const cl=REG_COL[r.reg];if(!cl)return;const x0=x.getPixelForValue(i),x1=x.getPixelForValue(Math.min(i+1,bt.length-1));
+      ctx.fillStyle=hexA(cl,bandA);ctx.fillRect(Math.floor(x0),a.top,Math.ceil(x1-x0)+1,a.bottom-a.top);});ctx.restore();}};
+  // valore finale di ogni serie come etichetta sull'asse destro (senza nome)
+  const endLabel={id:'endLabel',afterDraw(c){const {ctx}=c;const ax=c.scales.y2;if(!ax)return;ctx.save();ctx.font='700 12px '+Chart.defaults.font.family;
+    const tags=[];
+    c.data.datasets.forEach((ds,i)=>{if(ds.endValue==null)return;const m=c.getDatasetMeta(i);if(m.hidden)return;const p=m.data[m.data.length-1];if(!p)return;tags.push({y:p.y,t:nf(ds.endValue,1),bg:ds.tagColor||ds.borderColor});});
+    tags.sort((a,b)=>a.y-b.y);for(let k=1;k<tags.length;k++){if(tags[k].y-tags[k-1].y<22)tags[k].y=tags[k-1].y+22;}
+    tags.forEach(g=>{const w=ctx.measureText(g.t).width+14,h=20,x=ax.left+4,y=g.y-h/2;
+      ctx.fillStyle=g.bg;ctx.beginPath();if(ctx.roundRect)ctx.roundRect(x,y,w,h,4);else ctx.rect(x,y,w,h);ctx.fill();
+      ctx.fillStyle='#fff';ctx.textAlign='left';ctx.textBaseline='middle';ctx.fillText(g.t,x+7,g.y);});
+    ctx.restore();}};
   charts.nav=new Chart(document.getElementById('navChart'),{type:'line',
     data:{labels,datasets:[
-      {label:'Motore Tensigma',data:bt.map(r=>r.nav),borderColor:navy,borderWidth:2.5,pointRadius:0,tension:0,endLabel:'Motore '+nf(bt[bt.length-1].nav,1)},
-      {label:'60/40',data:bt.map(r=>r.b),borderColor:bench,borderWidth:1.5,borderDash:[6,4],pointRadius:0,tension:0,endLabel:'60/40 '+nf(bt[bt.length-1].b,1),endColor:muted}]},
+      {label:'Motore Tensigma',data:bt.map(r=>r.nav),borderColor:navy,borderWidth:2.5,pointRadius:0,tension:0,endValue:bt[bt.length-1].nav},
+      {label:'60/40',data:bt.map(r=>r.b),borderColor:bench,borderWidth:1.5,borderDash:[6,4],pointRadius:0,tension:0,endValue:bt[bt.length-1].b,tagColor:bench}]},
     options:{maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
       plugins:{legend:{position:'top',align:'start',labels:{boxWidth:18,boxHeight:2}},tooltip:Object.assign({},tip,{callbacks:{title:i=>dIT(i[0].label)+' · '+(REG_LABEL[bt[i[0].dataIndex].reg]||''),label:i=>i.dataset.label+': '+nf(i.parsed.y)}})},
-      scales:{x:xTime,y:{grid:{color:line},border:{display:false},ticks:{callback:v=>nf(v,0)}}}},plugins:[bands,endLabel]});
+      layout:{padding:{right:4}},
+      scales:{x:xTime,y:{grid:{color:line},border:{display:false},ticks:{callback:v=>nf(v,0)}},
+        y2:{position:'right',grid:{display:false},border:{display:false},ticks:{display:false},
+            afterDataLimits:s=>{const y=s.chart.scales.y;s.min=y.min;s.max=y.max;},afterFit:s=>{s.width=72;}}}},plugins:[bands,endLabel]});
+  document.getElementById('regLegend').innerHTML='Fasce di colore sul grafico: regime di mercato deciso dal Motore. '+
+    '<span class="regleg">'+REG_ORDER.map(r=>`<span><i style="background:${hexA(REG_COL[r],.45)}"></i>${REG_LABEL[r]}</span>`).join('')+'</span>';
   // regime step chart
   charts.reg=new Chart(document.getElementById('regimeChart'),{type:'line',
     data:{labels,datasets:[{label:'Regime',data:bt.map(r=>REG_ORDER.indexOf(r.reg)),borderColor:navy,borderWidth:2,stepped:true,pointRadius:0}]},
