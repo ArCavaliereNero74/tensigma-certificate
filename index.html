@@ -202,7 +202,11 @@ footer{font-size:12px;color:var(--muted);border-top:1px solid var(--line);paddin
   <div class="panel" style="margin-top:16px">
     <div class="sub" style="margin-bottom:8px">Volatilità annua del Motore e delle tre linee (rolling 52 settimane)</div>
     <div class="chart"><canvas id="volChart" aria-label="Volatilità annua rolling"></canvas></div>
-    <div class="caption">Deviazione standard dei rendimenti settimanali delle ultime 52 settimane, annualizzata. Serie al netto dei costi di transazione. I rendimenti passati non sono indicativi di quelli futuri.</div>
+    <div class="sub" style="margin:22px 0 8px">Sharpe Ratio del Motore e delle tre linee (rolling 52 settimane)</div>
+    <div class="chart"><canvas id="shChart" aria-label="Sharpe Ratio rolling"></canvas></div>
+    <div class="sub" style="margin:22px 0 8px">Calmar Ratio del Motore e delle tre linee (rolling 52 settimane)</div>
+    <div class="chart"><canvas id="caChart" aria-label="Calmar Ratio rolling"></canvas></div>
+    <div class="caption">Finestre mobili di 52 settimane su rendimenti settimanali al netto dei costi di transazione. Volatilità: deviazione standard annualizzata. Sharpe Ratio: rendimento medio annualizzato meno il tasso privo di rischio 1,8%, diviso per la volatilità. Calmar Ratio: rendimento delle 52 settimane diviso per il max drawdown della stessa finestra (asse limitato a 10 per leggibilità). I rendimenti passati non sono indicativi di quelli futuri.</div>
   </div>
   <div class="panel" style="margin-top:16px">
     <div class="tools" style="justify-content:space-between">
@@ -470,29 +474,38 @@ function renderLive(B){
   document.getElementById('liveCaption').textContent=`Periodo ${dIT(rows[0].d)} – ${dIT(last)}. Fino al ${dIT(start)} ricostruzione giornaliera dai NAV delle tre linee con i pesi del Motore, al netto dei costi di transazione (coincide con il NAV settimanale del Motore); dal ${dIT(start)} NAV indicativo del tracking dai prezzi di chiusura (area evidenziata). Volatilità annualizzata su rendimenti giornalieri. Il valore ufficiale del certificate è quello calcolato dall'emittente. I rendimenti passati non sono indicativi di quelli futuri.`;
 }
 function renderVol(B){
-  const bt=B.backtest.serie, W=52;
-  const ink=css('--ink'),line=css('--line'),navy=css('--navy'),surf=css('--raised');
-  const roll=k=>{const r=bt.map((x,i)=>i?x[k]/bt[i-1][k]-1:null);return bt.map((x,i)=>{if(i<W)return null;const s=r.slice(i-W+1,i+1);const m=s.reduce((a,v)=>a+v,0)/W;return Math.sqrt(s.reduce((a,v)=>a+(v-m)**2,0)/(W-1))*Math.sqrt(52)*100;});};
+  const bt=B.backtest.serie, W=52, RF=0.018, CAP=10;
+  const rets=k=>bt.map((x,i)=>i?x[k]/bt[i-1][k]-1:null);
+  const win=(k,f)=>{const r=rets(k);return bt.map((x,i)=>i<W?null:f(r.slice(i-W+1,i+1),bt.slice(i-W,i+1).map(y=>y[k])));};
+  const sd=s=>{const m=s.reduce((a,v)=>a+v,0)/s.length;return Math.sqrt(s.reduce((a,v)=>a+(v-m)**2,0)/(s.length-1));};
+  const F={
+    vol:(r)=>sd(r)*Math.sqrt(52)*100,
+    sharpe:(r)=>{const v=sd(r)*Math.sqrt(52);const m=r.reduce((a,x)=>a+x,0)/r.length*52;return v>0?(m-RF)/v:null;},
+    calmar:(r,n)=>{let pk=-1e18,dd=0;n.forEach(v=>{pk=Math.max(pk,v);dd=Math.min(dd,v/pk-1);});const ret=n[n.length-1]/n[0]-1;if(dd>-1e-4)return CAP;return Math.max(-CAP,Math.min(CAP,ret/-dd));}
+  };
+  const series=[['nav','Motore Tensigma',css('--navy'),3.5],['nl',LN.Lumen,css(LC.Lumen),1.5],['na',LN.Atlantica,css(LC.Atlantica),1.5],['ns',LN.Sigma,css(LC.Sigma),1.5]];
+  rollChart('vol','volChart',bt,series.map(([k,l,c,w])=>({label:l,data:win(k,F.vol),borderColor:c,borderWidth:w,pointRadius:0,tension:0,order:w>2?0:1})),v=>nf(v,1)+'%',{min:0},v=>v+'%');
+  rollChart('sh','shChart',bt,series.map(([k,l,c,w])=>({label:l,data:win(k,F.sharpe),borderColor:c,borderWidth:w,pointRadius:0,tension:0,order:w>2?0:1})),v=>nf(v,2),{},v=>nf(v,1));
+  rollChart('ca','caChart',bt,series.map(([k,l,c,w])=>({label:l,data:win(k,F.calmar),borderColor:c,borderWidth:w,pointRadius:0,tension:0,order:w>2?0:1})),v=>nf(v,2),{max:CAP},v=>nf(v,0));
+}
+function rollChart(key,id,bt,ds,fmt,yopt,tick){
+  const ink=css('--ink'),line=css('--line'),surf=css('--raised'),muted=css('--muted');
   const labels=bt.map(r=>r.d);
-  const ds=[
-    {label:'Motore Tensigma',data:roll('nav'),borderColor:navy,borderWidth:2.5,pointRadius:0,tension:0},
-    {label:LN.Lumen,data:roll('nl'),borderColor:css(LC.Lumen),borderWidth:1.5,pointRadius:0,tension:0},
-    {label:LN.Atlantica,data:roll('na'),borderColor:css(LC.Atlantica),borderWidth:1.5,pointRadius:0,tension:0},
-    {label:LN.Sigma,data:roll('ns'),borderColor:css(LC.Sigma),borderWidth:1.5,pointRadius:0,tension:0}];
-  const tags={id:'vtags',afterDraw(c){const ax=c.scales.y2;if(!ax)return;const {ctx}=c;ctx.save();ctx.font='700 12px '+Chart.defaults.font.family;
-    const t=[];c.data.datasets.forEach((d,i)=>{const m=c.getDatasetMeta(i);if(m.hidden)return;const p=m.data[m.data.length-1];if(!p)return;t.push({y:p.y,t:nf(d.data[d.data.length-1],1)+'%',bg:d.borderColor});});
+  const zero={id:'zero'+key,beforeDatasetsDraw(c){const y=c.scales.y;if(y.min>=0)return;const {ctx,chartArea:a}=c;const p=y.getPixelForValue(0);ctx.save();ctx.strokeStyle=muted;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(a.left,p);ctx.lineTo(a.right,p);ctx.stroke();ctx.restore();}};
+  const tags={id:'tags'+key,afterDraw(c){const ax=c.scales.y2;if(!ax)return;const {ctx}=c;ctx.save();ctx.font='700 12px '+Chart.defaults.font.family;
+    const t=[];c.data.datasets.forEach((d,i)=>{const m=c.getDatasetMeta(i);if(m.hidden)return;const p=m.data[m.data.length-1];const v=d.data[d.data.length-1];if(!p||v==null)return;t.push({y:p.y,t:fmt(v),bg:d.borderColor});});
     t.sort((a,b)=>a.y-b.y);for(let j=1;j<t.length;j++){if(t[j].y-t[j-1].y<22)t[j].y=t[j-1].y+22;}
     t.forEach(g=>{const w=ctx.measureText(g.t).width+14,x=ax.left+4;ctx.fillStyle=g.bg;ctx.beginPath();if(ctx.roundRect)ctx.roundRect(x,g.y-10,w,20,4);else ctx.rect(x,g.y-10,w,20);ctx.fill();
       ctx.fillStyle='#fff';ctx.textBaseline='middle';ctx.fillText(g.t,x+7,g.y);});ctx.restore();}};
-  if(charts.vol) charts.vol.destroy();
-  charts.vol=new Chart(document.getElementById('volChart'),{type:'line',data:{labels,datasets:ds},
+  if(charts[key]) charts[key].destroy();
+  charts[key]=new Chart(document.getElementById(id),{type:'line',data:{labels,datasets:ds},
     options:{maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
       plugins:{legend:{position:'top',align:'start',labels:{boxWidth:18,boxHeight:2}},
-        tooltip:{mode:'index',intersect:false,backgroundColor:surf,titleColor:ink,bodyColor:ink,borderColor:line,borderWidth:1,padding:10,callbacks:{title:i=>dIT(i[0].label),label:i=>i.dataset.label+': '+nf(i.parsed.y,1)+'%'}}},
+        tooltip:{mode:'index',intersect:false,backgroundColor:surf,titleColor:ink,bodyColor:ink,borderColor:line,borderWidth:1,padding:10,callbacks:{title:i=>dIT(i[0].label),label:i=>i.dataset.label+': '+fmt(i.parsed.y)}}},
       scales:{x:{grid:{display:false},border:{color:line},ticks:{maxTicksLimit:8,maxRotation:0,callback:function(v){const s=this.getLabelForValue(v);return s.slice(5,7)+'/'+s.slice(2,4)}}},
-        y:{min:0,grid:{color:line},border:{display:false},ticks:{callback:v=>v+'%'}},
+        y:Object.assign({grid:{color:line},border:{display:false},ticks:{callback:tick}},yopt),
         y2:{position:'right',grid:{display:false},border:{display:false},ticks:{display:false},afterDataLimits:s=>{const y=s.chart.scales.y;s.min=y.min;s.max=y.max;},afterFit:s=>{s.width=72;}}}},
-    plugins:[tags]});
+    plugins:[zero,tags]});
 }
 function hexA(c,a){c=c.trim();if(c.startsWith('#')){let h=c.slice(1);if(h.length===3)h=h.split('').map(x=>x+x).join('');const n=parseInt(h,16);return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`;}return c;}
 })();
