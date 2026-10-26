@@ -95,6 +95,7 @@ tfoot td{font-weight:700;color:var(--ink);border-top:1px solid var(--line)}
 .regleg{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:6px}
 .regleg span{display:inline-flex;align-items:center;gap:6px}
 .regleg i{display:inline-block;width:14px;height:10px;border-radius:2px;border:1px solid var(--line)}
+.btn.on{background:var(--navy);color:#fff;border-color:var(--navy)}
 .hbars .row{display:grid;grid-template-columns:150px 1fr 64px;gap:10px;align-items:center;font-size:13px;margin:6px 0}
 .hbars .track{background:var(--frost);border-radius:3px;height:8px}
 .hbars .fill{height:8px;border-radius:3px;background:var(--navy)}
@@ -199,9 +200,18 @@ footer{font-size:12px;color:var(--muted);border-top:1px solid var(--line);paddin
     <div class="panel"><div class="sub" style="margin-bottom:8px">Pesi delle tre linee nel tempo</div><div class="chart sm"><canvas id="wChart" aria-label="Pesi delle linee nel tempo"></canvas></div></div>
   </div>
   <div class="panel" style="margin-top:16px">
-    <div class="sub" style="margin-bottom:8px">NAV indicativo dalla data di avvio della composizione giornaliera (base 100)</div>
-    <div class="chart sm"><canvas id="liveChart" aria-label="NAV indicativo giornaliero"></canvas></div>
-    <div class="caption">Calcolo indicativo di Tensigma dai prezzi di chiusura, lordo dei costi delle linee salvo Sigma (netta). Il valore ufficiale del certificate è quello calcolato dall'emittente.</div>
+    <div class="sub" style="margin-bottom:8px">Volatilità annua del Motore e delle tre linee (rolling 52 settimane)</div>
+    <div class="chart"><canvas id="volChart" aria-label="Volatilità annua rolling"></canvas></div>
+    <div class="caption">Deviazione standard dei rendimenti settimanali delle ultime 52 settimane, annualizzata. Serie al netto dei costi di transazione. I rendimenti passati non sono indicativi di quelli futuri.</div>
+  </div>
+  <div class="panel" style="margin-top:16px">
+    <div class="tools" style="justify-content:space-between">
+      <div class="sub">NAV giornaliero del portafoglio combinato (base 100 all'inizio del periodo)</div>
+      <div id="perBtns" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+    </div>
+    <div class="grid kpis" id="perKpis" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-bottom:12px"></div>
+    <div class="chart"><canvas id="liveChart" aria-label="NAV giornaliero per periodo"></canvas></div>
+    <div class="caption" id="liveCaption"></div>
   </div>
 </section>
 
@@ -410,11 +420,79 @@ function renderCharts(B){
     data:{labels,datasets:[lineDs('wl','Lumen'),lineDs('wa','Atlantica'),lineDs('ws','Sigma')]},
     options:{maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{position:'top',align:'start',labels:{boxWidth:12}},tooltip:Object.assign({},tip,{callbacks:{title:i=>dIT(i[0].label),label:i=>i.dataset.label+': '+nf(i.parsed.y,1)+'%'}})},
       scales:{x:xTime,y:{stacked:true,min:0,max:100,grid:{color:line},border:{display:false},ticks:{callback:v=>v+'%'}}}}});
-  const nv=B.nav_indicativo;
+  renderVol(B);
+  renderLive(B);
+}
+let livePer='YTD';
+function renderLive(B){
+  const all=B.nav_giornaliero||[];
+  if(!all.length) return;
+  const ink=css('--ink'),muted=css('--muted'),line=css('--line'),navy=css('--navy'),bench=css('--bench'),surf=css('--raised');
+  const last=all[all.length-1].d, start=B.meta.avvio_tracking;
+  const back=m=>{const d=new Date(last+'T12:00:00');d.setMonth(d.getMonth()-m);return d.toISOString().slice(0,10);};
+  const P={YTD:['YTD',last.slice(0,4)+'-01-01'],'3M':['3M',back(3)],'1M':['1M',back(1)]};
+  // inizio periodo = ultima seduta prima della data (base del confronto); ITD parte dalla data di avvio
+  const from=P[livePer][1];
+  let i0=Math.max(0,all.findIndex(r=>r.d>=from)-1);
+  if(i0<0) i0=0;
+  const rows=all.slice(i0), n0=rows[0].nav, b0=rows[0].b;
+  const nav=rows.map(r=>r.nav/n0*100), bm=rows.map(r=>r.b!=null&&b0?r.b/b0*100:null);
+  document.getElementById('perBtns').innerHTML=Object.entries(P).map(([k,v])=>`<button type="button" class="btn ${k===livePer?'on':''}" data-p="${k}">${v[0]}</button>`).join('');
+  document.querySelectorAll('#perBtns button').forEach(b=>b.onclick=()=>{livePer=b.dataset.p;renderLive(B);});
+  // metriche del periodo
+  const ret=nav[nav.length-1]/100-1, retb=bm[bm.length-1]!=null?bm[bm.length-1]/100-1:null;
+  let pk=-1e9,dd=0;nav.forEach(v=>{pk=Math.max(pk,v);dd=Math.min(dd,v/pk-1);});
+  const rr=nav.slice(1).map((v,i)=>v/nav[i]-1);const mu=rr.reduce((a,x)=>a+x,0)/(rr.length||1);
+  const vol=rr.length>=20?Math.sqrt(rr.reduce((a,x)=>a+(x-mu)**2,0)/(rr.length-1))*Math.sqrt(252):null;
+  const k=[['Rendimento',pct(ret,2,true)],['60/40',retb==null?'—':pct(retb,2,true)],['Differenza',retb==null?'—':pct(ret-retb,2,true)],['Max drawdown',pct(dd,2,true)],['Volatilità annua',vol==null?'—':pct(vol,1)]];
+  document.getElementById('perKpis').innerHTML=k.map(x=>`<div class="kpi" style="padding:12px"><div class="l">${x[0]}</div><div class="v" style="font-size:18px">${x[1]}</div></div>`).join('');
+  const iT=rows.findIndex(r=>r.fonte==='tracking');
+  const mark={id:'mark',beforeDatasetsDraw(c){if(iT<=0)return;const {ctx,chartArea:a,scales:{x}}=c;const px=x.getPixelForValue(iT-1);ctx.save();
+    ctx.fillStyle=hexA(navy,.06);ctx.fillRect(px,a.top,a.right-px,a.bottom-a.top);ctx.strokeStyle=muted;ctx.setLineDash([3,3]);ctx.beginPath();ctx.moveTo(px,a.top);ctx.lineTo(px,a.bottom);ctx.stroke();
+    ctx.setLineDash([]);ctx.fillStyle=muted;ctx.font='12px '+Chart.defaults.font.family;ctx.textAlign='left';ctx.fillText('tracking',px+6,a.top+14);ctx.restore();}};
+  const tags={id:'tags',afterDraw(c){const ax=c.scales.y2;if(!ax)return;const {ctx}=c;ctx.save();ctx.font='700 12px '+Chart.defaults.font.family;
+    const t=[];c.data.datasets.forEach((ds,i)=>{const m=c.getDatasetMeta(i);const p=m.data[m.data.length-1];if(!p||ds.data[ds.data.length-1]==null)return;t.push({y:p.y,t:nf(ds.data[ds.data.length-1],2),bg:ds.tagColor||ds.borderColor});});
+    t.sort((a,b)=>a.y-b.y);for(let j=1;j<t.length;j++){if(t[j].y-t[j-1].y<22)t[j].y=t[j-1].y+22;}
+    t.forEach(g=>{const w=ctx.measureText(g.t).width+14,x=ax.left+4;ctx.fillStyle=g.bg;ctx.beginPath();if(ctx.roundRect)ctx.roundRect(x,g.y-10,w,20,4);else ctx.rect(x,g.y-10,w,20);ctx.fill();
+      ctx.fillStyle='#fff';ctx.textBaseline='middle';ctx.fillText(g.t,x+7,g.y);});ctx.restore();}};
+  if(charts.live) charts.live.destroy();
+  const tip={mode:'index',intersect:false,backgroundColor:surf,titleColor:ink,bodyColor:ink,borderColor:line,borderWidth:1,padding:10};
   charts.live=new Chart(document.getElementById('liveChart'),{type:'line',
-    data:{labels:nv.map(r=>r.data),datasets:[{label:'NAV indicativo',data:nv.map(r=>r.nav),borderColor:navy,borderWidth:2.5,pointRadius:nv.length<40?3:0,pointBackgroundColor:navy,tension:0}]},
-    options:{maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false},tooltip:Object.assign({},tip,{callbacks:{title:i=>dIT(i[0].label),label:i=>'NAV '+nf(i.parsed.y)}})},
-      scales:{x:{grid:{display:false},border:{color:line},ticks:{callback:function(v){return dIT(this.getLabelForValue(v)).slice(0,5)}}},y:{grid:{color:line},border:{display:false},ticks:{callback:v=>nf(v,1)}}}}});
+    data:{labels:rows.map(r=>r.d),datasets:[
+      {label:'Portafoglio combinato',data:nav,borderColor:navy,borderWidth:2.5,pointRadius:rows.length<12?3:0,pointBackgroundColor:navy,tension:0},
+      {label:'60/40',data:bm,borderColor:bench,borderWidth:1.5,borderDash:[6,4],pointRadius:0,tension:0,tagColor:bench,spanGaps:true}]},
+    options:{maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+      plugins:{legend:{position:'top',align:'start',labels:{boxWidth:18,boxHeight:2}},tooltip:Object.assign({},tip,{callbacks:{title:i=>dIT(i[0].label)+(rows[i[0].dataIndex].fonte==='tracking'?' · tracking':' · ricostruzione'),label:i=>i.dataset.label+': '+nf(i.parsed.y)}})},
+      scales:{x:{grid:{display:false},border:{color:line},ticks:{maxTicksLimit:8,maxRotation:0,callback:function(v){return dIT(this.getLabelForValue(v)).slice(0,5)}}},
+        y:{grid:{color:line},border:{display:false},ticks:{callback:v=>nf(v,1)}},
+        y2:{position:'right',grid:{display:false},border:{display:false},ticks:{display:false},afterDataLimits:s=>{const y=s.chart.scales.y;s.min=y.min;s.max=y.max;},afterFit:s=>{s.width=72;}}}},
+    plugins:[mark,tags]});
+  document.getElementById('liveCaption').textContent=`Periodo ${dIT(rows[0].d)} – ${dIT(last)}. Fino al ${dIT(start)} ricostruzione giornaliera dai NAV delle tre linee con i pesi del Motore, al netto dei costi di transazione (coincide con il NAV settimanale del Motore); dal ${dIT(start)} NAV indicativo del tracking dai prezzi di chiusura (area evidenziata). Volatilità annualizzata su rendimenti giornalieri. Il valore ufficiale del certificate è quello calcolato dall'emittente. I rendimenti passati non sono indicativi di quelli futuri.`;
+}
+function renderVol(B){
+  const bt=B.backtest.serie, W=52;
+  const ink=css('--ink'),line=css('--line'),navy=css('--navy'),surf=css('--raised');
+  const roll=k=>{const r=bt.map((x,i)=>i?x[k]/bt[i-1][k]-1:null);return bt.map((x,i)=>{if(i<W)return null;const s=r.slice(i-W+1,i+1);const m=s.reduce((a,v)=>a+v,0)/W;return Math.sqrt(s.reduce((a,v)=>a+(v-m)**2,0)/(W-1))*Math.sqrt(52)*100;});};
+  const labels=bt.map(r=>r.d);
+  const ds=[
+    {label:'Motore Tensigma',data:roll('nav'),borderColor:navy,borderWidth:2.5,pointRadius:0,tension:0},
+    {label:LN.Lumen,data:roll('nl'),borderColor:css(LC.Lumen),borderWidth:1.5,pointRadius:0,tension:0},
+    {label:LN.Atlantica,data:roll('na'),borderColor:css(LC.Atlantica),borderWidth:1.5,pointRadius:0,tension:0},
+    {label:LN.Sigma,data:roll('ns'),borderColor:css(LC.Sigma),borderWidth:1.5,pointRadius:0,tension:0}];
+  const tags={id:'vtags',afterDraw(c){const ax=c.scales.y2;if(!ax)return;const {ctx}=c;ctx.save();ctx.font='700 12px '+Chart.defaults.font.family;
+    const t=[];c.data.datasets.forEach((d,i)=>{const m=c.getDatasetMeta(i);if(m.hidden)return;const p=m.data[m.data.length-1];if(!p)return;t.push({y:p.y,t:nf(d.data[d.data.length-1],1)+'%',bg:d.borderColor});});
+    t.sort((a,b)=>a.y-b.y);for(let j=1;j<t.length;j++){if(t[j].y-t[j-1].y<22)t[j].y=t[j-1].y+22;}
+    t.forEach(g=>{const w=ctx.measureText(g.t).width+14,x=ax.left+4;ctx.fillStyle=g.bg;ctx.beginPath();if(ctx.roundRect)ctx.roundRect(x,g.y-10,w,20,4);else ctx.rect(x,g.y-10,w,20);ctx.fill();
+      ctx.fillStyle='#fff';ctx.textBaseline='middle';ctx.fillText(g.t,x+7,g.y);});ctx.restore();}};
+  if(charts.vol) charts.vol.destroy();
+  charts.vol=new Chart(document.getElementById('volChart'),{type:'line',data:{labels,datasets:ds},
+    options:{maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+      plugins:{legend:{position:'top',align:'start',labels:{boxWidth:18,boxHeight:2}},
+        tooltip:{mode:'index',intersect:false,backgroundColor:surf,titleColor:ink,bodyColor:ink,borderColor:line,borderWidth:1,padding:10,callbacks:{title:i=>dIT(i[0].label),label:i=>i.dataset.label+': '+nf(i.parsed.y,1)+'%'}}},
+      scales:{x:{grid:{display:false},border:{color:line},ticks:{maxTicksLimit:8,maxRotation:0,callback:function(v){const s=this.getLabelForValue(v);return s.slice(5,7)+'/'+s.slice(2,4)}}},
+        y:{min:0,grid:{color:line},border:{display:false},ticks:{callback:v=>v+'%'}},
+        y2:{position:'right',grid:{display:false},border:{display:false},ticks:{display:false},afterDataLimits:s=>{const y=s.chart.scales.y;s.min=y.min;s.max=y.max;},afterFit:s=>{s.width=72;}}}},
+    plugins:[tags]});
 }
 function hexA(c,a){c=c.trim();if(c.startsWith('#')){let h=c.slice(1);if(h.length===3)h=h.split('').map(x=>x+x).join('');const n=parseInt(h,16);return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`;}return c;}
 })();
