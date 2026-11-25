@@ -108,6 +108,7 @@ footer{font-size:12px;color:var(--muted);border-top:1px solid var(--line);paddin
 :root[data-theme="dark"]{--glow:91,148,255;--glass:rgba(14,24,48,.62)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--glow:91,148,255;--glass:rgba(14,24,48,.62)}}
 body{position:relative;overflow-x:hidden}
+body.fxpaused::before{animation-play-state:paused}
 body::before{content:"";position:fixed;inset:-20vmax;z-index:-2;pointer-events:none;
   background:
    radial-gradient(38vmax 30vmax at 12% 8%,color-mix(in srgb,var(--sigma) 16%,transparent),transparent 70%),
@@ -199,6 +200,110 @@ details summary{list-style:none}details summary::-webkit-details-marker{display:
 details summary::before{content:"+";display:inline-block;width:14px;color:var(--gold);font-weight:700;transition:transform .3s var(--ease)}
 details[open] summary::before{transform:rotate(45deg)}
 
+
+/* ===== Navigabilita v2 ===== */
+html{scroll-behavior:smooth;scroll-padding-top:84px}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+:focus-visible{outline:2px solid var(--sigma);outline-offset:3px;border-radius:6px}
+.skip{position:absolute;left:16px;top:-60px;z-index:60;background:var(--navy);color:#fff;padding:10px 14px;border-radius:8px;text-decoration:none;font-size:14px;transition:top .2s}
+.skip:focus{top:12px}
+/* nav numerata, coerente con i titoli */
+#nav{counter-reset:nv}
+#nav a:not(:first-child){counter-increment:nv}
+#nav a:not(:first-child)::before{content:counter(nv,decimal-leading-zero);font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--gold);margin-right:6px;opacity:.9}
+#nav a.active::before{color:#E2C894}
+#nav.compact{padding:4px}
+/* torna su */
+#toTop{position:fixed;right:20px;bottom:20px;z-index:40;display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:999px;border:1px solid var(--line);
+  background:var(--glass);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:var(--ink);font:inherit;font-size:13px;cursor:pointer;box-shadow:var(--shadow);
+  opacity:0;transform:translateY(12px);pointer-events:none;transition:opacity .35s var(--ease),transform .35s var(--ease)}
+#toTop.show{opacity:1;transform:none;pointer-events:auto}
+#toTop svg{width:14px;height:14px}
+#toTop .cur{color:var(--muted);max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:600px){#toTop .cur{display:none}#toTop{right:14px;bottom:14px}}
+/* pausa animazione */
+.hero .fxbtn{color:#C9D2E1;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.06);border-radius:8px;font:inherit;font-size:12px;padding:4px 10px;cursor:pointer;margin-top:8px;margin-left:6px}
+.hero .fxbtn:hover{border-color:#E2C894}
+.hero .ctl{display:flex;flex-wrap:wrap;justify-content:flex-end}
+/* tabella composizione: intestazione fissa */
+.tbl.scrollbox{max-height:min(560px,70vh);overflow:auto;border:1px solid var(--line);border-radius:8px}
+.tbl.scrollbox thead th{position:sticky;top:0;z-index:2;background:var(--raised);box-shadow:inset 0 -1px 0 var(--line)}
+.tbl.scrollbox tfoot td{position:sticky;bottom:0;background:var(--raised);box-shadow:inset 0 1px 0 var(--line)}
+.count{font-size:12px;color:var(--muted);margin-left:auto}
+/* ribilanciamenti: ultimi 4, poi espandi */
+#events:not(.all) .ev:nth-child(n+5){display:none}
+.morebar{display:flex;justify-content:center;margin-top:12px}
+/* schede dei grafici rolling */
+.tabs{display:inline-flex;gap:4px;padding:4px;border:1px solid var(--line);border-radius:999px;background:var(--frost);margin-bottom:14px;flex-wrap:wrap}
+.tabs button{font:inherit;font-size:13px;border:0;background:transparent;color:var(--body);padding:7px 14px;border-radius:999px;cursor:pointer;transition:background .25s var(--ease),color .25s}
+.tabs button[aria-selected="true"]{background:var(--navy);color:#fff}
+.rpane[hidden]{display:none}
+/* indice interno dell'andamento */
+.subnav{display:flex;gap:8px;flex-wrap:wrap;margin:-4px 0 14px}
+.subnav a{font-size:12px;color:var(--muted);text-decoration:none;border-bottom:1px dashed var(--line)}
+.subnav a:hover{color:var(--ink);border-color:var(--navy)}
+
+@media (max-width:600px){
+  .tbl.scrollbox{max-height:70vh}
+  #compTbl thead{display:none}
+  #compTbl tr{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 8px;padding:10px 6px;border-bottom:1px solid var(--line)}
+  #compTbl td{border:0;padding:0}
+  #compTbl tbody tr{position:relative;padding-left:34px}
+  #compTbl tbody td:nth-child(1){position:absolute;left:6px;top:11px;font-size:12px}
+  #compTbl tbody td:nth-child(2){flex:1 1 calc(100% - 70px);font-weight:700;color:var(--ink)}
+  #compTbl tbody td:nth-child(7){order:2;font-size:15px}
+  #compTbl tbody td:nth-child(n+3):nth-child(-n+6){order:3;font-size:12px;color:var(--muted)}
+  #compTbl tbody td:nth-child(n+4):nth-child(-n+6)::before{content:"· ";}
+  #compTbl tbody td:nth-child(8){order:4;width:100%!important}
+  #compTbl tfoot tr{justify-content:space-between}
+  #compTbl tfoot td:first-child,#compTbl tfoot td:last-child{display:none}
+}
+
+/* ===== Regime: foto reali + HUD ===== */
+.stage{position:relative;overflow:hidden;border-radius:20px;margin:0 0 16px;height:clamp(420px,42vw,520px);color:#EEF2F8;isolation:isolate;background:#070D1C;
+  box-shadow:0 30px 60px -30px rgba(7,13,28,.7),inset 0 1px 0 rgba(255,255,255,.07)}
+.stage .ph{position:absolute;inset:0;opacity:0;transition:opacity 1.2s var(--ease);z-index:0}
+.stage .ph.on{opacity:1}
+.stage .ph img,.stage .ph video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform-origin:60% 45%}
+.stage .ph.on img,.stage .ph.on video{animation:kb 22s ease-in-out infinite alternate}
+.stage .ph.on[data-r="Bear / crisi"] img{animation:breathe 4.6s ease-in-out infinite;transform-origin:62% 35%}
+@keyframes breathe{0%,100%{transform:scale(1.03) translateY(0)}45%{transform:scale(1.065) translateY(-.6%)}60%{transform:scale(1.06) translateY(-.5%)}}
+.stage .ph.on[data-r="Bull forte"] img{animation:charge 3.4s cubic-bezier(.45,0,.2,1) infinite;transform-origin:45% 45%}
+@keyframes charge{0%{transform:scale(1.02) translate(0,0)}52%{transform:scale(1.085) translate(-.6%,.5%)}55%{transform:scale(1.09) translate(-.4%,.8%)}58%{transform:scale(1.085) translate(-.7%,.4%)}100%{transform:scale(1.02) translate(0,0)}}
+.stage .ph.on[data-r="Bull tematico"] img{animation:run 9s ease-in-out infinite alternate;transform-origin:55% 55%}
+@keyframes run{from{transform:scale(1.08) translateX(1.5%)}to{transform:scale(1.08) translateX(-2%)}}
+@keyframes kb{from{transform:scale(1.02)}to{transform:scale(1.10)}}
+.stage .ph.side img{left:auto;right:0;width:64%;-webkit-mask-image:linear-gradient(90deg,transparent 0%,#000 26%);mask-image:linear-gradient(90deg,transparent 0%,#000 26%)}
+.stage .ph .storm{animation:none;opacity:0}
+.stage .ph.on .storm{animation:storm 14s ease-in-out infinite,kb 22s ease-in-out infinite alternate}
+@keyframes storm{0%,28%{opacity:0}40%,88%{opacity:1}100%{opacity:0}}
+.stage .flash{position:absolute;inset:0;background:#DDEBFF;opacity:0;mix-blend-mode:screen;pointer-events:none}
+.stage .ph.on .flash{animation:flash 10s linear infinite}
+@keyframes flash{0%,55%{opacity:0}56%{opacity:.55}57%{opacity:.05}58.5%{opacity:.4}61%,100%{opacity:0}}
+.stage .shade{position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:linear-gradient(90deg,rgba(7,13,28,.92) 0%,rgba(7,13,28,.72) 30%,rgba(7,13,28,.15) 62%,rgba(7,13,28,.25) 100%),linear-gradient(0deg,rgba(7,13,28,.75),transparent 35%)}
+.stage canvas{position:absolute;inset:0;width:100%;height:100%;z-index:2;pointer-events:none}
+.stage .txt{position:relative;z-index:3;padding:30px 32px;max-width:440px;height:100%;display:flex;flex-direction:column;gap:10px}
+.stage .eyebrow{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:#E2C894;display:flex;align-items:center;gap:10px}
+.stage .eyebrow::before{content:"";width:28px;height:1px;background:#E2C894}
+.stage .rname{font-size:clamp(32px,4.2vw,50px);font-weight:700;line-height:1.02;letter-spacing:-.02em;color:#fff}
+.stage .rmeta{font-size:13px;color:#C9D2E1}
+.stage .rimg{font-size:14px;color:#EEF2F8;border-left:2px solid var(--racc,#E2C894);padding-left:10px;max-width:360px}
+.stage .rw{font-size:13px;color:#C9D2E1;font-variant-numeric:tabular-nums}
+.stage .rw b{color:#fff}
+.stage .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:auto}
+.stage .chips button{font:inherit;font-size:12px;color:#DDE3EE;background:rgba(7,13,28,.45);border:1px solid rgba(255,255,255,.22);border-radius:999px;padding:6px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;backdrop-filter:blur(6px);transition:background .25s,border-color .25s}
+.stage .chips button i{width:8px;height:8px;border-radius:50%;display:inline-block}
+.stage .chips button[aria-pressed="true"]{background:rgba(255,255,255,.18);border-color:#E2C894;color:#fff}
+.stage .chips button.now::after{content:"oggi";font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#E2C894}
+.stage .stctl{position:absolute;right:14px;top:12px;z-index:3}
+.stage .stctl button{font:inherit;font-size:11px;color:#C9D2E1;background:rgba(7,13,28,.5);border:1px solid rgba(255,255,255,.22);border-radius:8px;padding:4px 9px;cursor:pointer}
+.stage .credit{position:absolute;right:14px;bottom:10px;z-index:3;font-size:10px;color:#8E9AB0}
+.stage .credit a{color:#AEB9CE}
+.stage.paused .ph img,.stage.paused .ph video,.stage.paused .storm{animation-play-state:paused!important}
+@media (max-width:760px){.stage .ph.side img{width:100%;-webkit-mask-image:none;mask-image:none}.stage{height:600px}.stage .shade{background:linear-gradient(180deg,rgba(7,13,28,.9) 0%,rgba(7,13,28,.55) 45%,rgba(7,13,28,.2) 70%,rgba(7,13,28,.8) 100%)}
+  .stage .txt{max-width:none;padding:22px 20px 40px}.stage .credit{left:20px;right:auto}}
+@media (prefers-reduced-motion:reduce){.stage .ph.on .storm{opacity:0}}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation:none!important;transition:none!important}
   .rv{opacity:1;transform:none}
@@ -206,6 +311,7 @@ details[open] summary::before{transform:rotate(45deg)}
 </style>
 </head>
 <body>
+<a class="skip" href="#sintesi">Vai ai contenuti</a>
 <div id="progress"></div>
 <div class="wrap">
 <div class="hero" id="hero"><canvas id="heroFx" aria-hidden="true"></canvas>
@@ -223,7 +329,7 @@ details[open] summary::before{transform:rotate(45deg)}
     <div class="sub"><span class="livedot"></span>Composizione alla chiusura del</div>
     <b id="asof">—</b>
     <div class="sub" id="gen"></div>
-    <button class="theme" id="themeBtn" type="button">Tema chiaro / scuro</button>
+    <div class="ctl"><button class="theme" id="themeBtn" type="button">Tema chiaro / scuro</button><button class="fxbtn" id="fxBtn" type="button" aria-pressed="false">Pausa animazione</button></div>
   </div>
 </header>
 <div class="herostats" id="heroStats" aria-live="polite"></div>
@@ -243,6 +349,21 @@ details[open] summary::before{transform:rotate(45deg)}
 <section id="regime">
   <h2>Regime di mercato</h2>
   <p class="lead">Il Motore Allocativo Tensigma legge il mercato ogni venerdì e decide i pesi delle tre linee, in vigore dal lunedì successivo.</p>
+  <div class="stage" id="stage">
+    <div class="ph side" data-r="Bear / crisi"><img src="img/regime_bear.jpg" alt="" loading="lazy" style="object-position:50% 25%"></div>
+    <div class="ph" data-r="Volatilita alta"><video src="img/regime_sole.mp4" poster="img/regime_sole_v.jpg" muted loop playsinline preload="none" aria-hidden="true"></video><video class="storm" src="img/regime_temporale.mp4" poster="img/regime_temporale_v.jpg" muted loop playsinline preload="none" aria-hidden="true"></video></div>
+    <div class="ph" data-r="Neutro"><video src="img/regime_neutro.mp4" poster="img/regime_neutro.jpg" muted loop playsinline preload="none" aria-hidden="true"></video></div>
+    <div class="ph" data-r="Bull tematico"><img src="img/regime_bull_tematico.jpg" alt="" loading="lazy" style="object-position:55% 55%"></div>
+    <div class="ph side" data-r="Bull forte"><img src="img/regime_bull_forte.jpg" alt="" loading="lazy" style="object-position:40% 45%"></div>
+    <div class="shade"></div>
+    <canvas id="stageFx" aria-hidden="true"></canvas>
+    <div class="txt" role="status" aria-live="polite">
+      <div class="eyebrow">Regime vigente</div>
+      <div class="rname" id="stName">—</div>
+    </div>
+    <div class="stctl"><button type="button" id="stPause" aria-pressed="false">Pausa</button></div>
+    <div class="credit">Foto <a href="https://unsplash.com" target="_blank" rel="noopener">Unsplash</a> · video <a href="https://www.pexels.com" target="_blank" rel="noopener">Pexels</a></div>
+  </div>
   <div class="grid two">
     <div class="panel">
       <div class="grid kpis" id="regimeKpis" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr))"></div>
@@ -271,8 +392,9 @@ details[open] summary::before{transform:rotate(45deg)}
       <a class="btn" href="composizione_ultima.csv" download>Scarica CSV (ultima)</a>
       <a class="btn" href="storico_composizione.csv" download>Scarica storico CSV</a>
       <a class="btn" href="cert_bundle.json" download>Dati JSON</a>
+      <span class="count" id="compCount"></span>
     </div>
-    <div class="tbl"><table id="compTbl"></table></div>
+    <div class="tbl scrollbox" tabindex="0" aria-label="Tabella composizione, scorrevole"><table id="compTbl"></table></div>
     <div class="caption">Liquidità: una quota fissa in conto (cash vero), il resto investito nell'ETF monetario XEON.</div>
   </div>
 </section>
@@ -291,31 +413,38 @@ details[open] summary::before{transform:rotate(45deg)}
   <h2>Ribilanciamenti</h2>
   <p class="lead">Operazioni sul certificate generate dal Motore (cambio di regime) o dalle singole linee. Variazioni di peso in punti percentuali del certificate.</p>
   <div class="panel" id="events"></div>
+  <div class="morebar"><button class="btn" id="evMore" type="button" aria-expanded="false" hidden></button></div>
 </section>
 
 <section id="andamento">
   <h2>Andamento e metriche</h2>
   <p class="lead">Portafoglio combinato del Motore, base 100 al 10/01/2020, dati settimanali, confronto con il portafoglio 60/40.</p>
-  <div class="panel">
+  <div class="subnav"><a href="#navChartBox">NAV dal 2020</a><a href="#metBox">Metriche e pesi</a><a href="#rollBox">Rischio rolling</a><a href="#liveBox">NAV giornaliero</a></div>
+  <div class="panel" id="navChartBox">
     <div class="chart"><canvas id="navChart" aria-label="NAV del portafoglio combinato e del 60/40"></canvas></div>
     <div class="caption" id="regLegend"></div>
     <div class="caption" id="navCaption"></div>
   </div>
-  <div class="grid two" style="margin-top:16px">
+  <div class="grid two" style="margin-top:16px" id="metBox">
     <div class="panel"><div class="sub" style="margin-bottom:8px">Metriche</div><div class="tbl"><table id="metTbl"></table></div>
       <div class="caption">Sharpe e Sortino con tasso privo di rischio 1,8%. I rendimenti passati non sono indicativi di quelli futuri.</div></div>
     <div class="panel"><div class="sub" style="margin-bottom:8px">Pesi delle tre linee nel tempo</div><div class="chart sm"><canvas id="wChart" aria-label="Pesi delle linee nel tempo"></canvas></div></div>
   </div>
-  <div class="panel" style="margin-top:16px">
-    <div class="sub" style="margin-bottom:8px">Volatilità annua del Motore e delle tre linee (rolling 52 settimane)</div>
-    <div class="chart"><canvas id="volChart" aria-label="Volatilità annua rolling"></canvas></div>
-    <div class="sub" style="margin:22px 0 8px">Sharpe Ratio del Motore e delle tre linee (rolling 52 settimane)</div>
-    <div class="chart"><canvas id="shChart" aria-label="Sharpe Ratio rolling"></canvas></div>
-    <div class="sub" style="margin:22px 0 8px">Calmar Ratio del Motore e delle tre linee (rolling 52 settimane)</div>
-    <div class="chart"><canvas id="caChart" aria-label="Calmar Ratio rolling"></canvas></div>
+  <div class="panel" style="margin-top:16px" id="rollBox">
+    <div class="tabs" role="tablist" aria-label="Metriche rolling 52 settimane">
+      <button type="button" role="tab" id="t-vol" aria-controls="p-vol" aria-selected="true">Volatilità</button>
+      <button type="button" role="tab" id="t-sh" aria-controls="p-sh" aria-selected="false" tabindex="-1">Sharpe Ratio</button>
+      <button type="button" role="tab" id="t-ca" aria-controls="p-ca" aria-selected="false" tabindex="-1">Calmar Ratio</button>
+    </div>
+    <div class="rpane" id="p-vol" role="tabpanel" aria-labelledby="t-vol"><div class="sub" style="margin-bottom:8px">Volatilità annua del Motore e delle tre linee (rolling 52 settimane)</div>
+    <div class="chart"><canvas id="volChart" aria-label="Volatilità annua rolling"></canvas></div></div>
+    <div class="rpane" id="p-sh" role="tabpanel" aria-labelledby="t-sh" hidden><div class="sub" style="margin-bottom:8px">Sharpe Ratio del Motore e delle tre linee (rolling 52 settimane)</div>
+    <div class="chart"><canvas id="shChart" aria-label="Sharpe Ratio rolling"></canvas></div></div>
+    <div class="rpane" id="p-ca" role="tabpanel" aria-labelledby="t-ca" hidden><div class="sub" style="margin-bottom:8px">Calmar Ratio del Motore e delle tre linee (rolling 52 settimane)</div>
+    <div class="chart"><canvas id="caChart" aria-label="Calmar Ratio rolling"></canvas></div></div>
     <div class="caption">Finestre mobili di 52 settimane su rendimenti settimanali al netto dei costi di transazione. Volatilità: deviazione standard annualizzata. Sharpe Ratio: rendimento medio annualizzato meno il tasso privo di rischio 1,8%, diviso per la volatilità. Calmar Ratio: rendimento delle 52 settimane diviso per il max drawdown della stessa finestra (asse limitato a 10 per leggibilità). I rendimenti passati non sono indicativi di quelli futuri.</div>
   </div>
-  <div class="panel" style="margin-top:16px">
+  <div class="panel" style="margin-top:16px" id="liveBox">
     <div class="tools" style="justify-content:space-between">
       <div class="sub">NAV giornaliero del portafoglio combinato (base 100 all'inizio del periodo)</div>
       <div id="perBtns" style="display:flex;gap:6px;flex-wrap:wrap"></div>
@@ -336,6 +465,7 @@ details[open] summary::before{transform:rotate(45deg)}
   <p>Documento informativo predisposto da Tensigma Srl per l'emittente. Non costituisce offerta né raccomandazione di investimento. I rendimenti passati non sono indicativi di quelli futuri.</p>
 </footer>
 </div>
+<button id="toTop" type="button" aria-label="Torna all'inizio"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 13V3M3.5 7.5 8 3l4.5 4.5"/></svg><span>Inizio</span><span class="cur" id="toTopCur"></span></button>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script>
@@ -647,7 +777,7 @@ const sgn=(x,d)=>(x>0?'+':x<0?'−':'')+nf(Math.abs(x),d);
 
 /* ---- hero canvas: flowing price-like lines ---- */
 const cv=$('#heroFx'), cx=cv.getContext('2d');
-let W=0,H=0,dpr=1,t0=performance.now(),run=true;
+let W=0,H=0,dpr=1,t0=performance.now(),run=true,paused=false;
 function size(){dpr=Math.min(2,devicePixelRatio||1);W=cv.clientWidth;H=cv.clientHeight;cv.width=W*dpr;cv.height=H*dpr;cx.setTransform(dpr,0,0,dpr,0,0);}
 const seeds=[[0.70,'#4FE0EA',1.6,.8],[0.60,'#5B94FF',2.2,.95],[0.80,'#FF8A3D',1.4,.65],[0.50,'#E2C894',1,.35]];
 function noise(x,k){return Math.sin(x*0.011+k)*0.5+Math.sin(x*0.027+k*2.1)*0.28+Math.sin(x*0.061+k*3.7)*0.14+Math.sin(x*0.13+k*5.3)*0.06;}
@@ -666,10 +796,12 @@ function frame(now){
     if(k===1){cx.lineTo(W,H);cx.lineTo(0,H);cx.closePath();const fg=cx.createLinearGradient(0,H*base-40,0,H);fg.addColorStop(0,'rgba(91,148,255,.16)');fg.addColorStop(1,'rgba(91,148,255,0)');cx.fillStyle=fg;cx.shadowBlur=0;cx.fill();}
     cx.shadowBlur=0;cx.globalAlpha=1;
   });
-  if(!R) requestAnimationFrame(frame);
+  if(!R&&!paused) requestAnimationFrame(frame);
 }
 size(); addEventListener('resize',()=>{size();if(R)frame(performance.now());});
-new IntersectionObserver(e=>{const v=e[0].isIntersecting;if(v&&!run){run=true;requestAnimationFrame(frame);}run=v;}).observe($('#hero'));
+new IntersectionObserver(e=>{const v=e[0].isIntersecting;if(v&&!run&&!paused){run=true;requestAnimationFrame(frame);}run=v;}).observe($('#hero'));
+const fxBtn=$('#fxBtn'); if(R){fxBtn.hidden=true;}
+fxBtn.onclick=()=>{paused=!paused;fxBtn.setAttribute('aria-pressed',paused);fxBtn.textContent=paused?'Riprendi animazione':'Pausa animazione';$$('.livedot').forEach(d=>d.style.animationPlayState=paused?'paused':'running');document.body.classList.toggle('fxpaused',paused);if(!paused){run=true;requestAnimationFrame(frame);}};
 requestAnimationFrame(frame);
 
 /* ---- scroll progress + active nav ---- */
@@ -732,6 +864,109 @@ const wait=setInterval(()=>{ if(!window.__B||!document.querySelector('#kpis .kpi
   $$('canvas').forEach(c=>{if(c.id!=='heroFx')cvo.observe(c);});
   new MutationObserver(()=>{arm();$$('canvas').forEach(c=>{if(c.id!=='heroFx')cvo.observe(c);});}).observe($('.wrap'),{childList:true,subtree:true});
 },60);
+})();
+</script>
+
+<script>
+(function(){
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const R=TSFX.reduced;
+/* torna su + sezione corrente */
+const tt=$('#toTop'), cur=$('#toTopCur'), hero=$('#hero');
+addEventListener('scroll',()=>{tt.classList.toggle('show',scrollY>hero.offsetHeight+200);},{passive:true});
+tt.onclick=()=>{scrollTo({top:0,behavior:R?'auto':'smooth'});$('#nav a').focus({preventScroll:true});};
+const names={};$$('#nav a').forEach(a=>names[a.getAttribute('href').slice(1)]=a.textContent.trim());
+const so=new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting)return;const id=e.target.id;cur.textContent='· '+(names[id]||'');
+  if(history.replaceState&&scrollY>hero.offsetHeight) history.replaceState(null,'','#'+id);}),{rootMargin:'-45% 0px -50% 0px'});
+$$('section[id]').forEach(x=>so.observe(x));
+/* schede rolling: click e frecce */
+const tabs=$$('#rollBox [role=tab]');
+function sel(t,focus){tabs.forEach(b=>{const on=b===t;b.setAttribute('aria-selected',on);b.tabIndex=on?0:-1;$('#'+b.getAttribute('aria-controls')).hidden=!on;});
+  if(focus)t.focus();const c=$('#'+t.getAttribute('aria-controls')+' canvas'),ch=window.Chart&&Chart.getChart(c);if(ch){ch.resize();if(!R){ch.$drawn=false;ch.reset();ch.update();}}}
+tabs.forEach((t,i)=>{t.onclick=()=>sel(t);t.onkeydown=e=>{if(e.key==='ArrowRight'||e.key==='ArrowLeft'){e.preventDefault();sel(tabs[(i+(e.key==='ArrowRight'?1:tabs.length-1))%tabs.length],true);}};});
+/* ribilanciamenti + contatore composizione: dopo il rendering dei dati */
+const more=$('#evMore'), ev=$('#events');
+const setT=(el,t)=>{if(el.textContent!==t)el.textContent=t;};
+function evSync(){const n=ev.querySelectorAll('.ev').length;if(n>4){if(more.hidden)more.hidden=false;const all=ev.classList.contains('all');setT(more,all?'Mostra solo gli ultimi 4':'Mostra tutti i ribilanciamenti ('+n+')');more.setAttribute('aria-expanded',all);}else if(!more.hidden)more.hidden=true;}
+more.onclick=()=>{const was=ev.classList.contains('all');ev.classList.toggle('all');evSync();if(was)$('#ribilanciamenti').scrollIntoView({behavior:R?'auto':'smooth'});};
+function countSync(){const rows=$$('#compTbl tbody tr').length,tot=($('#compTbl tfoot td:nth-child(2)')||{}).textContent||'';const m=tot.match(/\((\d+)/);
+  setT($('#compCount'),m?(rows+' di '+m[1]+' posizioni visibili'):'');}
+const syncMo=new MutationObserver(()=>{evSync();countSync();});syncMo.observe($('#events'),{childList:true});syncMo.observe($('#compTbl'),{childList:true,subtree:true});
+/* apertura con #sezione: porta alla sezione dopo il caricamento dei dati */
+if(location.hash){const id=location.hash.slice(1);const w=setInterval(()=>{if(window.__B){clearInterval(w);const el=document.getElementById(id);if(el)setTimeout(()=>el.scrollIntoView(),300);}},80);}
+})();
+</script>
+
+<script>
+(function(){
+const R=TSFX.reduced, $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const REGS=['Bear / crisi','Volatilita alta','Neutro','Bull tematico','Bull forte'];
+const LBL={'Bear / crisi':'Bear / crisi','Volatilita alta':'Volatilità alta','Neutro':'Neutro','Bull tematico':'Bull tematico','Bull forte':'Bull forte'};
+const ACC={'Bear / crisi':'#FF5A5F','Volatilita alta':'#F28C28','Neutro':'#F2C94C','Bull tematico':'#6FE3A8','Bull forte':'#2BD67B'};
+const IMG={'Bear / crisi':'Orso dominante: il rischio guida il mercato.','Volatilita alta':'Sole e temporale si alternano: oscillazioni ampie.','Neutro':'Brezza sul prato: mercato calmo, senza una direzione forte.','Bull tematico':'Corsa agile nella polvere: la spinta è concentrata su alcuni temi.','Bull forte':'Toro in carica: rialzo ampio e deciso.'};
+/* punto del soggetto (frazione di larghezza/altezza) per il mirino */
+const AIM={'Bear / crisi':[.70,.40],'Volatilita alta':[.68,.40],'Neutro':[.70,.45],'Bull tematico':[.70,.52],'Bull forte':[.58,.42]};
+const st=$('#stage'),cv=$('#stageFx'),cx=cv.getContext('2d');let W=0,H=0,dpr=1,mode='Bear / crisi',acc='#FF5A5F',aim=[.66,.42],aimT=[.66,.42],paused=false,visible=true,t0=performance.now();
+function size(){dpr=Math.min(2,devicePixelRatio||1);W=cv.clientWidth;H=cv.clientHeight;cv.width=W*dpr;cv.height=H*dpr;cx.setTransform(dpr,0,0,dpr,0,0);}
+function hexA(c,a){const n=parseInt(c.slice(1),16);return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`;}
+const DOT=(()=>{const c=document.createElement('canvas');c.width=c.height=64;const g=c.getContext('2d');const r=g.createRadialGradient(32,32,0,32,32,32);r.addColorStop(0,'rgba(255,255,255,1)');r.addColorStop(.4,'rgba(255,255,255,.45)');r.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=r;g.fillRect(0,0,64,64);return c;})();
+const tint={};function sprite(col){if(tint[col])return tint[col];const c=document.createElement('canvas');c.width=c.height=64;const g=c.getContext('2d');g.drawImage(DOT,0,0);g.globalCompositeOperation='source-in';g.fillStyle=col;g.fillRect(0,0,64,64);return tint[col]=c;}
+const PT=[];for(let i=0;i<140;i++)PT.push({x:Math.random(),y:Math.random(),vx:0,vy:0,r:1,a:0,l:Math.random()});
+let ptMode=null;
+function respawn(p,m,init){const R_=Math.random;
+  if(m==='Bear / crisi'){p.x=.45+R_()*.55;p.y=init?R_():1.05;p.vx=(R_()-.3)*.0004;p.vy=-(.0003+R_()*.0009);p.r=1+R_()*3.5;p.a=.08+R_()*.35;p.c='#DDE6F2';}
+  else if(m==='Bull forte'){p.x=.48+R_()*.4;p.y=.78+R_()*.25;p.vx=(R_()-.35)*.003;p.vy=-(.0015+R_()*.004);p.r=6+R_()*26;p.a=.04+R_()*.14;p.c='#D9B07E';p.l=0;}
+  else if(m==='Bull tematico'){p.x=init?R_():1.1;p.y=.35+R_()*.6;p.vx=-(.0015+R_()*.004);p.vy=(R_()-.5)*.0006;p.r=8+R_()*30;p.a=.03+R_()*.1;p.c='#E6E6E6';}
+  else{p.a=0;}}
+function particles(t,narrow){
+  if(ptMode!==mode){ptMode=mode;PT.forEach(p=>respawn(p,mode,true));}
+  if(!['Bear / crisi','Bull forte','Bull tematico'].includes(mode))return;
+  const n=mode==='Bear / crisi'?90:140;
+  for(let i=0;i<n;i++){const p=PT[i];p.x+=p.vx;p.y+=p.vy;if(mode==='Bull forte'){p.l+=.008;p.vy*=.995;if(p.l>1||p.y<.2)respawn(p,mode);}
+    else if(p.y<-.05||p.x<-.1||p.x>1.15)respawn(p,mode);
+    const fade=mode==='Bull forte'?Math.sin(Math.PI*Math.min(1,p.l)):1;const al=p.a*fade*(mode==='Bear / crisi'?(.6+.4*Math.sin(t*2+i)):1);if(al<=0)continue;
+    const X=(narrow?p.x*W:(.3+p.x*.7)*W),Y=p.y*H,r=p.r*(narrow?.7:1);cx.globalAlpha=al;cx.drawImage(sprite(p.c),X-r,Y-r,r*2,r*2);}
+  cx.globalAlpha=1;
+  if(mode==='Bull tematico'){const u=(t*.07)%1.4-.2;const x0=W*(1.1-u*1.2);const g=cx.createLinearGradient(x0-160,0,x0+160,0);g.addColorStop(0,'rgba(255,240,210,0)');g.addColorStop(.5,'rgba(255,240,210,.16)');g.addColorStop(1,'rgba(255,240,210,0)');
+    cx.save();cx.translate(x0,H/2);cx.rotate(-.35);cx.fillStyle=g;cx.fillRect(-160-x0,-H,320+x0*0,H*2);cx.restore();}
+  if(mode==='Bear / crisi'){const k=Math.max(0,Math.sin(t*2*Math.PI/4.6-1.2));const g=cx.createRadialGradient(W*.66,H*.45,0,W*.66,H*.45,W*.25);g.addColorStop(0,`rgba(255,90,95,${.10*k})`);g.addColorStop(1,'rgba(255,90,95,0)');cx.fillStyle=g;cx.fillRect(0,0,W,H);}
+}
+function frame(now){
+  const t=(now-t0)/1000;cx.clearRect(0,0,W,H);const narrow=W<760;particles(t,narrow);
+  aim[0]+=(aimT[0]-aim[0])*.08;aim[1]+=(aimT[1]-aim[1])*.08;
+  const ax=narrow?W*.62:W*aim[0], ay=narrow?H*.66:H*aim[1], R0=Math.min(W,H)*(narrow?.16:.2);
+  cx.lineWidth=1;
+  /* angoli HUD */
+  cx.strokeStyle='rgba(226,200,148,.55)';const m=14,L=22;[[m,m,1,1],[W-m,m,-1,1],[m,H-m,1,-1],[W-m,H-m,-1,-1]].forEach(([x,y,sx,sy])=>{cx.beginPath();cx.moveTo(x,y+sy*L);cx.lineTo(x,y);cx.lineTo(x+sx*L,y);cx.stroke();});
+  /* mirino e anelli */
+  cx.strokeStyle=hexA(acc,.75);cx.beginPath();cx.arc(ax,ay,R0,t*.4,t*.4+1.2);cx.stroke();cx.beginPath();cx.arc(ax,ay,R0,t*.4+3.1,t*.4+4.3);cx.stroke();
+  cx.strokeStyle='rgba(159,216,255,.45)';cx.setLineDash([3,6]);cx.beginPath();cx.arc(ax,ay,R0*1.28,-t*.25,-t*.25+5.2);cx.stroke();cx.setLineDash([]);
+  cx.strokeStyle='rgba(159,216,255,.55)';[[-1,0],[1,0],[0,-1],[0,1]].forEach(([dx,dy])=>{cx.beginPath();cx.moveTo(ax+dx*R0*.78,ay+dy*R0*.78);cx.lineTo(ax+dx*R0*.92,ay+dy*R0*.92);cx.stroke();});
+  for(let i=0;i<36;i++){const a=i/36*6.283+t*.1,r1=R0*1.42,r2=r1+(i%3?4:9);cx.strokeStyle=i%3?'rgba(159,216,255,.25)':hexA(acc,.6);cx.beginPath();cx.moveTo(ax+Math.cos(a)*r1,ay+Math.sin(a)*r1);cx.lineTo(ax+Math.cos(a)*r2,ay+Math.sin(a)*r2);cx.stroke();}
+  /* griglia leggera sul lato destro */
+  cx.strokeStyle='rgba(159,216,255,.06)';for(let x=narrow?0:W*.45;x<W;x+=48){cx.beginPath();cx.moveTo(x,0);cx.lineTo(x,H);cx.stroke();}for(let y=0;y<H;y+=48){cx.beginPath();cx.moveTo(narrow?0:W*.45,y);cx.lineTo(W,y);cx.stroke();}
+  /* linea di scansione */
+  const sy=((t*.12)%1)*H;const g=cx.createLinearGradient(0,sy-60,0,sy);g.addColorStop(0,'rgba(159,216,255,0)');g.addColorStop(1,'rgba(159,216,255,.10)');cx.fillStyle=g;cx.fillRect(narrow?0:W*.4,sy-60,W,60);
+  cx.fillStyle='rgba(159,216,255,.35)';cx.fillRect(narrow?0:W*.4,sy,W,1);
+  if(!R&&!paused&&visible)requestAnimationFrame(frame);
+}
+function cambio(B,r){const c=(B.backtest.cambi||[]).filter(x=>x.a===r);return c.length?c[c.length-1].pesi_target:null;}
+const dIT=s=>{if(!s)return '—';const [y,m,d]=s.slice(0,10).split('-');return `${d}/${m}/${y}`;};
+let vig=null;
+function play(){ $$('#stage video').forEach(v=>{const on=v.closest('.ph').classList.contains('on');if(on&&!paused&&visible&&!R){v.preload='auto';v.play().catch(()=>{});}else v.pause();}); }
+function show(r,B){mode=r;acc=ACC[r]||'#5B94FF';aimT=AIM[r]||aimT;
+  $$('#stage .ph').forEach(p=>p.classList.toggle('on',p.dataset.r===r));
+  $('#stName').textContent=LBL[r]||r;st.style.setProperty('--racc',acc);
+  play(); if(R)requestAnimationFrame(frame);}
+const wait=setInterval(()=>{const B=window.__B;if(!B)return;clearInterval(wait);
+  vig=B.regime.vigente;size();
+  $$('#stage .ph').forEach(p=>{if(p.dataset.r!==vig)p.remove();});
+  aim=AIM[vig]?AIM[vig].slice():aim;show(vig,B);requestAnimationFrame(frame);
+},80);
+addEventListener('resize',()=>{size();if(R)requestAnimationFrame(frame);});
+new IntersectionObserver(e=>{const v=e[0].isIntersecting;const was=visible;visible=v;play();if(v&&!was&&!paused&&!R)requestAnimationFrame(frame);}).observe(st);
+const pb=$('#stPause');if(R)pb.hidden=true;
+pb.onclick=()=>{paused=!paused;st.classList.toggle('paused',paused);pb.setAttribute('aria-pressed',paused);pb.textContent=paused?'Riprendi':'Pausa';play();if(!paused)requestAnimationFrame(frame);};
 })();
 </script>
 </body>
